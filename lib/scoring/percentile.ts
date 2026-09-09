@@ -12,6 +12,7 @@ const BENCHMARKS: Record<GameId, { mean: number; sd: number }> = {
   reaction: { mean: 6200, sd: 1700 },
   "crowd-pick": { mean: 5400, sd: 2300 },
   memory: { mean: 4200, sd: 2500 },
+  chain: { mean: 7000, sd: 4000 },
 };
 
 /** Abramowitz & Stegun 7.1.26 — plenty accurate for a progress ring. */

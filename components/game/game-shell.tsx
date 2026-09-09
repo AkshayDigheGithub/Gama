@@ -17,7 +17,7 @@ interface GameShellProps {
 }
 
 /**
- * Chrome shared by all three games: a thin header, an optional HUD strip and a
+ * Chrome shared by every game: a thin header, an optional HUD strip and a
  * full-height play area that fits inside the device's safe areas.
  */
 export function GameShell({ title, eyebrow, hud, children, locked = false, className }: GameShellProps) {

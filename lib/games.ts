@@ -13,8 +13,8 @@ export interface GameDefinition {
   durationLabel: string;
   /** Short, editorial rules shown on the game page and to crawlers. */
   howToPlay: string[];
-  accent: "accent" | "cool" | "royal";
-  icon: "zap" | "target" | "brain";
+  accent: "accent" | "cool" | "royal" | "amber";
+  icon: "zap" | "target" | "brain" | "waypoints";
 }
 
 export const GAMES: Record<GameId, GameDefinition> = {
@@ -72,9 +72,32 @@ export const GAMES: Record<GameId, GameDefinition> = {
     accent: "royal",
     icon: "brain",
   },
+  chain: {
+    id: "chain",
+    name: "Chain",
+    href: "/games/chain",
+    tagline: "Draw the longest route you can find.",
+    description:
+      "A path-building puzzle on a 5x5 grid. Drag through touching tiles to build a chain — each step has to land on the same number or exactly one higher. Long chains pay far more, but the combo multiplier dies in under three seconds, so every route is a bet on how greedy you can afford to be.",
+    duration: 60,
+    durationLabel: "60 seconds",
+    howToPlay: [
+      "Drag through touching tiles — diagonals count.",
+      "Each step must be the same number or exactly one higher.",
+      "Three tiles minimum; longer routes are worth far more.",
+      "Chain again within three seconds to build the multiplier.",
+    ],
+    accent: "amber",
+    icon: "waypoints",
+  },
 };
 
-export const GAME_LIST: GameDefinition[] = [GAMES.reaction, GAMES["crowd-pick"], GAMES.memory];
+export const GAME_LIST: GameDefinition[] = [
+  GAMES.reaction,
+  GAMES["crowd-pick"],
+  GAMES.memory,
+  GAMES.chain,
+];
 
 export function getGame(id: GameId): GameDefinition {
   return GAMES[id];

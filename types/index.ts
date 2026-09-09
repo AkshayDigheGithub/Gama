@@ -1,6 +1,6 @@
-export type GameId = "reaction" | "crowd-pick" | "memory";
+export type GameId = "reaction" | "crowd-pick" | "memory" | "chain";
 
-export const GAME_IDS: readonly GameId[] = ["reaction", "crowd-pick", "memory"];
+export const GAME_IDS: readonly GameId[] = ["reaction", "crowd-pick", "memory", "chain"];
 
 export function isGameId(value: unknown): value is GameId {
   return typeof value === "string" && (GAME_IDS as readonly string[]).includes(value);

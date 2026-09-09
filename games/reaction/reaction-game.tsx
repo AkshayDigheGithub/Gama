@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import { Hand, Timer, Zap } from "lucide-react";
+import { GameLoading } from "@/components/game/game-loading";
 import { GameShell } from "@/components/game/game-shell";
 import { ResultScreen } from "@/components/game/result-screen";
 import { Badge } from "@/components/ui/badge";
@@ -170,6 +171,15 @@ export default function ReactionGame() {
 
   const playing = phase === "waiting" || phase === "ready" || phase === "feedback";
   const roundNumber = Math.min(rounds.length + (phase === "feedback" ? 0 : 1), REACTION_ROUNDS);
+
+  if (phase === "done" && !result) {
+    // The final round flips the phase; the result lands one effect later.
+    return (
+      <GameShell title="Reaction" eyebrow="Result">
+        <GameLoading label="Scoring" />
+      </GameShell>
+    );
+  }
 
   if (phase === "done" && result) {
     return (

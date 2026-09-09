@@ -5,11 +5,11 @@ import { canonical } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Leaderboard",
   description:
-    "See where your ONE MORE scores land across Reaction, Crowd Pick and Memory. An MVP demo board — the roster is simulated and your scores are stored in your own browser.",
+    "See where your ONE MORE scores land across Reaction, Crowd Pick, Memory and Chain. An MVP demo board — the roster is simulated and your scores are stored in your own browser.",
   alternates: { canonical: canonical("/leaderboard") },
   openGraph: {
     title: "Leaderboard — ONE MORE",
-    description: "Where your scores land across all three games.",
+    description: "Where your scores land across all four games.",
     url: canonical("/leaderboard"),
   },
 };

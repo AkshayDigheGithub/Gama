@@ -17,6 +17,7 @@ import {
   Zap,
   type LucideIcon,
 } from "lucide-react";
+import { GameLoading } from "@/components/game/game-loading";
 import { GameShell } from "@/components/game/game-shell";
 import { ResultScreen } from "@/components/game/result-screen";
 import { Badge } from "@/components/ui/badge";
@@ -221,6 +222,15 @@ export default function MemoryGame() {
     },
     [state.locked, haptic],
   );
+
+  if (phase === "done" && !result) {
+    // The clock flips the phase; the result lands one effect later.
+    return (
+      <GameShell title="Memory" eyebrow="Result">
+        <GameLoading label="Scoring" />
+      </GameShell>
+    );
+  }
 
   if (phase === "done" && result) {
     return (

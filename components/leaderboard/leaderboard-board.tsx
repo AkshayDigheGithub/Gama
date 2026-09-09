@@ -17,6 +17,7 @@ const BOARD_LABEL: Record<BoardId, string> = {
   reaction: GAMES.reaction.name,
   "crowd-pick": "Crowd",
   memory: GAMES.memory.name,
+  chain: GAMES.chain.name,
 };
 
 export function LeaderboardBoard({ limit = 10 }: { limit?: number }) {

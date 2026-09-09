@@ -19,6 +19,7 @@ const GOAL_RANGE: Record<GameId, [number, number]> = {
   reaction: [5800, 7600],
   "crowd-pick": [5200, 7800],
   memory: [3600, 6200],
+  chain: [4200, 7000],
 };
 
 /**
@@ -48,4 +49,5 @@ const BRIEFS: Record<GameId, string> = {
   reaction: "Five rounds, one clock. Score above today's target to clear the day.",
   "crowd-pick": "One number, one shot. Today's crowd is waiting — find the gap.",
   memory: "Climb the grid. Today's target needs a clean run, not a lucky one.",
+  chain: "Same grid for everyone today. Find the long routes before the combo dies.",
 };

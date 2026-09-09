@@ -6,11 +6,11 @@ import { canonical } from "@/lib/site";
 export const metadata: Metadata = {
   title: "All games",
   description:
-    "Three quick browser games you can play right now: Reaction, Crowd Pick and Memory. No account, no download, under a minute each.",
+    "Four quick browser games you can play right now: Reaction, Crowd Pick, Memory and Chain. No account, no download, under a minute each.",
   alternates: { canonical: canonical("/games") },
   openGraph: {
     title: "All games — ONE MORE",
-    description: "Reaction, Crowd Pick and Memory. Under a minute each. No account needed.",
+    description: "Reaction, Crowd Pick, Memory and Chain. Under a minute each. No account needed.",
     url: canonical("/games"),
   },
 };
@@ -21,12 +21,13 @@ export default function GamesPage() {
       <header className="max-w-2xl">
         <h1 className="text-4xl font-black tracking-tight sm:text-5xl">Games</h1>
         <p className="mt-3 text-base leading-relaxed text-ink-dim">
-          Three ways to lose a minute. Each one ends with a score, a personal best and a link you
+          Four ways to lose a minute — three you can pick up in a second, and one with a ceiling you
+          will not reach today. Each ends with a score, a personal best and a link you
           can throw at a friend.
         </p>
       </header>
 
-      <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {GAME_LIST.map((game, index) => (
           <GameCard key={game.id} game={game} index={index} />
         ))}

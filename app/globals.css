@@ -30,6 +30,8 @@
   --color-cool: #4fd8ff;
   --color-good: #43e8a4;
   --color-royal: #8b5cf6;
+  --color-amber: #ffb020;
+  --color-rose: #ff5c8a;
 
   /* Type scale + families */
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
