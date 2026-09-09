@@ -1,0 +1,173 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* ------------------------------------------------------------------
+   ONE MORE — design system
+   Dark-first, high contrast, one signature accent. Minimal gradients.
+   ------------------------------------------------------------------ */
+
+@theme {
+  /* Surfaces */
+  --color-canvas: #05060a;
+  --color-canvas-soft: #090b12;
+  --color-surface: #0e1119;
+  --color-surface-2: #141824;
+  --color-line: #1d2230;
+  --color-line-soft: #151926;
+
+  /* Type */
+  --color-ink: #f4f6fa;
+  --color-ink-dim: #a3aabd;
+  --color-ink-faint: #6a7288;
+
+  /* Accent — the ONE MORE colour */
+  --color-accent: #c9ff3b;
+  --color-accent-dim: #a4d420;
+  --color-accent-ink: #0a1000;
+
+  /* Semantic */
+  --color-hot: #ff5a5a;
+  --color-cool: #4fd8ff;
+  --color-good: #43e8a4;
+  --color-royal: #8b5cf6;
+
+  /* Type scale + families */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  --radius-card: 1.25rem;
+  --radius-pill: 999px;
+
+  --ease-snap: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-pulse-ring: pulse-ring 1.6s var(--ease-snap) infinite;
+  --animate-rise: rise 0.5s var(--ease-snap) both;
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-accent) 45%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 18px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+:root {
+  color-scheme: dark;
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-l: env(safe-area-inset-left, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
+}
+
+* {
+  border-color: var(--color-line);
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+  background-color: var(--color-canvas);
+}
+
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  overscroll-behavior-y: none;
+  text-rendering: optimizeLegibility;
+}
+
+/* A single very soft glow anchored top-centre. No busy gradients. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(
+      60rem 32rem at 50% -12rem,
+      color-mix(in oklab, var(--color-accent) 9%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      40rem 28rem at 90% 110%,
+      color-mix(in oklab, var(--color-royal) 8%, transparent),
+      transparent 70%
+    );
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@utility glass {
+  background-color: color-mix(in oklab, var(--color-surface) 78%, transparent);
+  border: 1px solid var(--color-line);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Locks the viewport during active gameplay so a tap never scrolls the page. */
+@utility play-lock {
+  touch-action: manipulation;
+  overscroll-behavior: contain;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+@utility pad-safe {
+  padding-left: max(1rem, var(--safe-l));
+  padding-right: max(1rem, var(--safe-r));
+}
+
+@utility stack-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Long words / generated usernames must never blow out a card. */
+@utility clamp-text {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
