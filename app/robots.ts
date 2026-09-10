@@ -17,7 +17,8 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/challenge"],
       },
     ],
+    // No `host:` directive — it is a non-standard Yandex extension that
+    // Google ignores and syntax validators reject.
     sitemap: `${SITE_URL}/sitemap.xml`,
-    host: SITE_URL,
   };
 }

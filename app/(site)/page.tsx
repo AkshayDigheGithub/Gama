@@ -24,13 +24,75 @@ const jsonLd = {
   inLanguage: "en",
 };
 
+
+/**
+ * Real questions with honest answers — including the ones about simulated
+ * leaderboards, which are worth stating plainly rather than burying.
+ */
+const FAQ = [
+  {
+    question: "Do I need an account to play?",
+    answer:
+      "No. There is no sign-up, no email and no login anywhere on the site. Open a game and it starts. A random display name is generated for you on your first visit, and you can change it whenever you like.",
+  },
+  {
+    question: "Is it free?",
+    answer:
+      "Yes, entirely. There are no ads, no paid unlocks and no premium tier. Every game, the daily challenge and the leaderboard are available to everyone.",
+  },
+  {
+    question: "Does it work on a phone?",
+    answer:
+      "Every game is built for touch first and tested at phone size. You can also add ONE MORE to your home screen, where it opens full screen like an installed app.",
+  },
+  {
+    question: "Where are my scores saved?",
+    answer:
+      "In your browser, using local storage. Nothing is sent to a server, which means your scores follow the device rather than you, and clearing your browser data erases them.",
+  },
+  {
+    question: "Are the leaderboard players real?",
+    answer:
+      "Not yet. The roster is generated from the date, so the board is stable through the day and refreshes daily, and it is labelled a demo board everywhere it appears. Your own row comes from scores stored in your browser and is not verified.",
+  },
+  {
+    question: "What is the daily challenge?",
+    answer:
+      "One game and one target score, both derived from the calendar date, so everyone gets the same challenge on the same day. Finishing any game keeps your daily streak alive; reloading the page does not.",
+  },
+  {
+    question: "How do challenge links work?",
+    answer:
+      "When a run ends you can turn your score into a link. Whoever opens it plays the same game with your score as the target and finds out immediately whether they beat it. No account is needed at either end.",
+  },
+  {
+    question: "How long does a game take?",
+    answer:
+      "Between twenty and sixty seconds. Crowd Pick is a single decision, Reaction is five rounds, and the rest run for about a minute or until you make one mistake too many.",
+  },
+] as const;
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: { "@type": "Answer", text: item.answer },
+  })),
+};
+
 export default function HomePage() {
   return (
     <div className="mx-auto w-full max-w-5xl pad-safe">
       <script
         type="application/ld+json"
-        // Static, hand-built object — no user input reaches this string.
+        // Static, hand-built objects — no user input reaches these strings.
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
       {/* ------------------------------------------------------------ hero -- */}
       <section className="flex flex-col items-center pt-14 pb-16 text-center sm:pt-20 sm:pb-20">
@@ -116,24 +178,20 @@ export default function HomePage() {
       </section>
 
       {/* ------------------------------------------------------------- seo -- */}
-      <section className="border-t border-line/70 pb-4 pt-10">
+      <section className="border-t border-line/70 pt-10">
         <h2 className="text-2xl font-bold tracking-tight">Fast browser games, no account needed</h2>
         <div className="mt-4 grid gap-6 text-sm leading-relaxed text-ink-dim md:grid-cols-3">
           <p>
             ONE MORE is built around a single loop: open a game, play it in under a minute, see
             exactly how you did, and go again. There is nothing to install, nothing to sign up for
-            and no email to hand over. Tap a game and you are playing.
+            and no email to hand over. Tap a game and you are playing, usually within two seconds
+            of the page finishing loading.
           </p>
           <p>
-            Reaction measures your reflexes across five rounds and reports your best and average in
-            milliseconds. Crowd Pick asks you to choose the number nobody else would. Memory grows
-            from a gentle 2x2 grid to a 4x6 wall while the clock drains. Chain is the deep one: you draw
-            routes through a grid where every step must hold or climb by one. Rush and Ascent add a
-            character to move — an endless runner whose course is identical for everyone that day,
-            and a one-button wall-jump climb away from a rising void. Salvo is about aim and
-            restraint: pick the right targets out of a crowded board and leave the wrong ones
-            alone. Every run ends with a score
-            you can hand to a friend as a link.
+            The seven games deliberately test different things. Some are pure reflex, some are
+            pattern and memory, one is a bet on what everyone else will do, and two put a character
+            on screen to move. Whichever you pick, a run is short, the score is a single number,
+            and the button to try again is the largest thing on the result screen.
           </p>
           <p>
             Scores, streaks and settings are stored in your own browser, so ONE MORE forgets you
@@ -142,6 +200,39 @@ export default function HomePage() {
             they are labelled as such everywhere they appear.
           </p>
         </div>
+      </section>
+
+      {/* --------------------------------------------------- the games, in words -- */}
+      <section aria-labelledby="the-games" className="border-t border-line/70 pt-10">
+        <h2 id="the-games" className="text-2xl font-bold tracking-tight">
+          The seven games
+        </h2>
+        <dl className="mt-5 grid gap-x-8 gap-y-5 md:grid-cols-2">
+          {GAME_LIST.map((game) => (
+            <div key={game.id}>
+              <dt className="text-sm font-bold text-ink">
+                {game.name}{" "}
+                <span className="font-normal text-ink-faint">· {game.durationLabel}</span>
+              </dt>
+              <dd className="mt-1 text-sm leading-relaxed text-ink-dim">{game.description}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
+      {/* ------------------------------------------------------------- faq -- */}
+      <section aria-labelledby="faq" className="border-t border-line/70 pb-4 pt-10">
+        <h2 id="faq" className="text-2xl font-bold tracking-tight">
+          Common questions
+        </h2>
+        <dl className="mt-5 grid gap-x-8 gap-y-5 md:grid-cols-2">
+          {FAQ.map((item) => (
+            <div key={item.question}>
+              <dt className="text-sm font-bold text-ink">{item.question}</dt>
+              <dd className="mt-1 text-sm leading-relaxed text-ink-dim">{item.answer}</dd>
+            </div>
+          ))}
+        </dl>
       </section>
     </div>
   );

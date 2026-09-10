@@ -3,7 +3,7 @@ import { LeaderboardBoard } from "@/components/leaderboard/leaderboard-board";
 import { canonical } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Leaderboard",
+  title: "Leaderboard — Compare Your Best Scores",
   description:
     "See where your ONE MORE scores land across all seven games. An MVP demo board — the roster is simulated and your scores are stored in your own browser.",
   alternates: { canonical: canonical("/leaderboard") },

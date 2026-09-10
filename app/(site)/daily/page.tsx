@@ -5,7 +5,7 @@ import { DailyHistory } from "@/components/game/daily-history";
 import { canonical } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Daily challenge",
+  title: "Daily Challenge — A New Target Every Day",
   description:
     "One challenge a day, generated from the date itself. Clear the target, keep your streak alive, come back tomorrow.",
   alternates: { canonical: canonical("/daily") },

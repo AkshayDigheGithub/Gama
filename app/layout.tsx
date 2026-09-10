@@ -13,7 +13,8 @@ const geistSans = Geist({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE.name} — ${SITE.tagline}`,
+    // ~54 characters: long enough to describe the site, short enough to survive.
+    default: `${SITE.name} — Seven Quick Browser Games, Free to Play`,
     template: `%s — ${SITE.name}`,
   },
   description: SITE.description,
@@ -34,14 +35,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: SITE.name,
-    title: `${SITE.name} — ${SITE.tagline}`,
+    title: `${SITE.name} — Seven Quick Browser Games, Free to Play`,
     description: SITE.description,
     url: canonical("/"),
     locale: SITE.locale,
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE.name} — ${SITE.tagline}`,
+    title: `${SITE.name} — Seven Quick Browser Games, Free to Play`,
     description: SITE.description,
   },
   robots: { index: true, follow: true },

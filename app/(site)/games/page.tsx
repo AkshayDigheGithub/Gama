@@ -4,7 +4,7 @@ import { GAME_LIST } from "@/lib/games";
 import { canonical } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "All games",
+  title: "All Games — Seven Free Browser Games",
   description:
     "Seven quick browser games you can play right now: Reaction, Crowd Pick, Memory, Chain, Rush, Ascent and Salvo. No account, no download, under a minute each.",
   alternates: { canonical: canonical("/games") },
