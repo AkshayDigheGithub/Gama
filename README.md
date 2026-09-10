@@ -33,15 +33,21 @@ npm run dev          # http://localhost:3000
 Import the repository and deploy — there is nothing to configure. No database,
 no environment variables, no external services.
 
-One optional variable, once a custom domain exists:
+The production domain is **https://onemoregame.site**, set in `lib/site.ts`. It
+drives canonical URLs, the sitemap, `robots.txt`, Open Graph tags and the
+absolute URLs inside share links.
 
-```
-NEXT_PUBLIC_SITE_URL=https://your-domain.com
-```
+Host resolution, in order:
 
-It drives canonical URLs, the sitemap, `robots.txt`, Open Graph tags and the
-absolute URLs inside share links. Without it, the app falls back to Vercel's
-own deployment URL, so previews still produce working links.
+| Where | Origin used |
+| ----- | ----------- |
+| `NEXT_PUBLIC_SITE_URL` set | that value (staging overrides) |
+| Local development | `http://localhost:3000` |
+| Vercel preview deployment | that preview's own URL |
+| Production | `https://onemoregame.site` |
+
+Previews and local builds serve `Disallow: /` from `robots.txt`, so a copy of
+the site on a preview host never competes with the real domain in search.
 
 ---
 

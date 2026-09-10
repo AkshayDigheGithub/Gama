@@ -14,9 +14,24 @@ export const metadata: Metadata = {
   alternates: { canonical: canonical("/") },
 };
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: SITE.name,
+  alternateName: "One More Game",
+  url: canonical("/"),
+  description: SITE.description,
+  inLanguage: "en",
+};
+
 export default function HomePage() {
   return (
     <div className="mx-auto w-full max-w-5xl pad-safe">
+      <script
+        type="application/ld+json"
+        // Static, hand-built object — no user input reaches this string.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* ------------------------------------------------------------ hero -- */}
       <section className="flex flex-col items-center pt-14 pb-16 text-center sm:pt-20 sm:pb-20">
         <Badge variant="accent" className="animate-rise">
