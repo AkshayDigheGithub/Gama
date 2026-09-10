@@ -2,7 +2,15 @@ import type { GameId } from "@/types";
 
 export type BoardId = GameId | "overall";
 
-export const BOARD_IDS: readonly BoardId[] = ["overall", "reaction", "crowd-pick", "memory", "chain"];
+export const BOARD_IDS: readonly BoardId[] = [
+  "overall",
+  "reaction",
+  "crowd-pick",
+  "memory",
+  "chain",
+  "rush",
+  "ascent",
+];
 
 export interface LeaderboardEntry {
   rank: number;

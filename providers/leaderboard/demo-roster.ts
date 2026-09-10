@@ -24,6 +24,8 @@ const SCORE_CEILING: Record<GameId, number> = {
   "crowd-pick": 9900,
   memory: 12000,
   chain: 18000,
+  rush: 15000,
+  ascent: 11000,
 };
 
 function makeName(rng: Rng, taken: Set<string>): string {

@@ -20,6 +20,8 @@ const GOAL_RANGE: Record<GameId, [number, number]> = {
   "crowd-pick": [5200, 7800],
   memory: [3600, 6200],
   chain: [4200, 7000],
+  rush: [3200, 6000],
+  ascent: [2400, 4600],
 };
 
 /**
@@ -50,4 +52,6 @@ const BRIEFS: Record<GameId, string> = {
   "crowd-pick": "One number, one shot. Today's crowd is waiting — find the gap.",
   memory: "Climb the grid. Today's target needs a clean run, not a lucky one.",
   chain: "Same grid for everyone today. Find the long routes before the combo dies.",
+  rush: "Everyone runs the identical course today. Same obstacles, same order — pure execution.",
+  ascent: "The same wall for everyone today. Climb it faster than the void climbs after you.",
 };

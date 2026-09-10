@@ -14,6 +14,7 @@ const ACCENT = {
   cool: { text: "text-cool", ring: "shadow-[inset_0_0_0_1px_rgba(79,216,255,0.16)]", glow: "bg-cool/10" },
   royal: { text: "text-royal", ring: "shadow-[inset_0_0_0_1px_rgba(139,92,246,0.2)]", glow: "bg-royal/10" },
   amber: { text: "text-amber", ring: "shadow-[inset_0_0_0_1px_rgba(255,176,32,0.18)]", glow: "bg-amber/10" },
+  rose: { text: "text-rose", ring: "shadow-[inset_0_0_0_1px_rgba(255,92,138,0.18)]", glow: "bg-rose/10" },
 } as const;
 
 export function GameCard({ game, index = 0 }: { game: GameDefinition; index?: number }) {

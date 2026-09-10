@@ -6,7 +6,7 @@ A fast browser-game platform built around one loop:
 
 > open → play instantly → get a score → see the result → play ONE MORE → share
 
-Four games, a daily challenge, streaks and shareable head-to-head links —
+Six games, a daily challenge, streaks and shareable head-to-head links —
 with **no database, no login, no signup and no backend state**. Everything the
 player accumulates lives in their own browser. Deploy it to Vercel and it works.
 
@@ -53,6 +53,8 @@ own deployment URL, so previews still produce working links.
 | **Crowd Pick** | ~20s   | One number, 1–100. Your uniqueness against a simulated crowd, ×100. |
 | **Memory**     | ~60s   | 2×2 → 3×3 → 4×4 and up. Clearing a level banks time and points; each miss costs two seconds. The run ends when the clock does. |
 | **Chain**      | 60s    | Drag routes through a 5×5 grid — each step must be the same number or exactly one higher. Long routes pay far more, but the combo window tightens with every chain made. |
+| **Rush**       | ~60s   | Endless runner. Tap to jump, hold for height, tap low to slide. The course is generated from the date, so everyone runs the identical one that day. One hit ends the run. |
+| **Ascent**     | ~60s   | One-button wall-jump climber. Tap for a flat hop, hold for a high arc; spiked wall stretches are fatal to land on and a void rises from below. |
 
 Game rules live in `games/<game>/` as plain TypeScript with no React imports
 (`engine.ts`, `crowd.ts`, `scoring.ts`). The React component in the same folder

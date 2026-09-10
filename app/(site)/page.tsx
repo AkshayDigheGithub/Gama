@@ -49,7 +49,7 @@ export default function HomePage() {
         </div>
 
         <p className="mt-5 text-xs text-ink-faint">
-          Four games. Under a minute each. Your scores stay in this browser.
+          Six games. Under a minute each. Your scores stay in this browser.
         </p>
       </section>
 
@@ -70,7 +70,7 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {GAME_LIST.map((game, index) => (
             <GameCard key={game.id} game={game} index={index} />
           ))}
@@ -113,8 +113,9 @@ export default function HomePage() {
             Reaction measures your reflexes across five rounds and reports your best and average in
             milliseconds. Crowd Pick asks you to choose the number nobody else would. Memory grows
             from a gentle 2x2 grid to a 4x6 wall while the clock drains. Chain is the deep one: you draw
-            routes through a grid where every step must hold or climb by one, and the multiplier
-            dies if you hesitate. Every run ends with a score
+            routes through a grid where every step must hold or climb by one. Rush and Ascent add a
+            character to move — an endless runner whose course is identical for everyone that day,
+            and a one-button wall-jump climb away from a rising void. Every run ends with a score
             you can hand to a friend as a link.
           </p>
           <p>

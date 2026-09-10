@@ -13,8 +13,8 @@ export interface GameDefinition {
   durationLabel: string;
   /** Short, editorial rules shown on the game page and to crawlers. */
   howToPlay: string[];
-  accent: "accent" | "cool" | "royal" | "amber";
-  icon: "zap" | "target" | "brain" | "waypoints";
+  accent: "accent" | "cool" | "royal" | "amber" | "rose";
+  icon: "zap" | "target" | "brain" | "waypoints" | "footprints" | "moveUp";
 }
 
 export const GAMES: Record<GameId, GameDefinition> = {
@@ -90,6 +90,42 @@ export const GAMES: Record<GameId, GameDefinition> = {
     accent: "amber",
     icon: "waypoints",
   },
+  rush: {
+    id: "rush",
+    name: "Rush",
+    href: "/games/rush",
+    tagline: "Run, jump, slide. Don't stop.",
+    description:
+      "An endless runner where the course is generated from the date, so every player on a given day runs the exact same obstacles in the exact same order. Tap to jump and hold for height, tap low to slide under bars. Skimming a hazard or grabbing an orb builds a multiplier that decays the moment you start playing safe.",
+    duration: 60,
+    durationLabel: "60 seconds",
+    howToPlay: [
+      "Tap to jump; hold longer to jump higher.",
+      "Tap low on the screen to slide, and hold it until you are clear.",
+      "Spikes and blocks want a jump; low bars want a slide.",
+      "Orbs and near misses build the multiplier. One hit ends the run.",
+    ],
+    accent: "accent",
+    icon: "footprints",
+  },
+  ascent: {
+    id: "ascent",
+    name: "Ascent",
+    href: "/games/ascent",
+    tagline: "One button. Climb before the void does.",
+    description:
+      "A one-button wall-jump climber. You cling to a wall, sliding slowly down, and leap to the opposite side. Tapping gives a flat hop and holding gives a high arc, so the only real decision is how far up to aim — and spiked stretches of wall make some landings fatal. A void rises from below and never stops.",
+    duration: 60,
+    durationLabel: "60 seconds",
+    howToPlay: [
+      "Tap to leap to the opposite wall.",
+      "Hold the tap for a higher arc, release early for a flat one.",
+      "Landing on spikes ends the run, so pick your height before you jump.",
+      "The void below rises faster the longer you last.",
+    ],
+    accent: "rose",
+    icon: "moveUp",
+  },
 };
 
 export const GAME_LIST: GameDefinition[] = [
@@ -97,6 +133,8 @@ export const GAME_LIST: GameDefinition[] = [
   GAMES["crowd-pick"],
   GAMES.memory,
   GAMES.chain,
+  GAMES.rush,
+  GAMES.ascent,
 ];
 
 export function getGame(id: GameId): GameDefinition {
