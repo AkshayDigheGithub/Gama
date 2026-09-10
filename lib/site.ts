@@ -3,7 +3,7 @@ export const SITE = {
   name: "ONE MORE",
   tagline: "Play. Beat. One More.",
   description:
-    "ONE MORE is a fast browser game platform. Six instant games — Reaction, Crowd Pick, Memory, Chain, Rush and Ascent — a daily challenge, streaks and shareable head-to-head links. No account, no download, no waiting.",
+    "ONE MORE is a fast browser game platform. Seven instant games — Reaction, Crowd Pick, Memory, Chain, Rush, Ascent and Salvo — a daily challenge, streaks and shareable head-to-head links. No account, no download, no waiting.",
   locale: "en_US",
   twitter: "@onemore",
 } as const;

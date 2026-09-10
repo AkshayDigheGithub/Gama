@@ -26,6 +26,7 @@ const SCORE_CEILING: Record<GameId, number> = {
   chain: 18000,
   rush: 15000,
   ascent: 11000,
+  salvo: 13000,
 };
 
 function makeName(rng: Rng, taken: Set<string>): string {

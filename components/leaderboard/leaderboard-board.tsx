@@ -20,6 +20,7 @@ const BOARD_LABEL: Record<BoardId, string> = {
   chain: GAMES.chain.name,
   rush: GAMES.rush.name,
   ascent: GAMES.ascent.name,
+  salvo: GAMES.salvo.name,
 };
 
 export function LeaderboardBoard({ limit = 10 }: { limit?: number }) {

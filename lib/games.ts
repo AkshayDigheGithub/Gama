@@ -14,7 +14,7 @@ export interface GameDefinition {
   /** Short, editorial rules shown on the game page and to crawlers. */
   howToPlay: string[];
   accent: "accent" | "cool" | "royal" | "amber" | "rose";
-  icon: "zap" | "target" | "brain" | "waypoints" | "footprints" | "moveUp";
+  icon: "zap" | "target" | "brain" | "waypoints" | "footprints" | "moveUp" | "crosshair";
 }
 
 export const GAMES: Record<GameId, GameDefinition> = {
@@ -126,6 +126,24 @@ export const GAMES: Record<GameId, GameDefinition> = {
     accent: "rose",
     icon: "moveUp",
   },
+  salvo: {
+    id: "salvo",
+    name: "Salvo",
+    href: "/games/salvo",
+    tagline: "Hit the right targets. Leave the rest.",
+    description:
+      "A target-shooting run built on triage rather than reflex. Several targets are live at once, each burning down its own fuse, and they are not worth the same: rapid ones pay more but vanish sooner, shielded ones take two taps, and void targets must be left alone entirely. A wasted shot resets your streak, and letting a real target expire costs one of three lives.",
+    duration: 60,
+    durationLabel: "60 seconds",
+    howToPlay: [
+      "Tap a target before its ring empties.",
+      "Rapid targets are smaller and pay more; shielded ones need two taps.",
+      "Never shoot a crossed void target — let it burn out on its own.",
+      "Missing resets your streak. Three expired targets end the run.",
+    ],
+    accent: "cool",
+    icon: "crosshair",
+  },
 };
 
 export const GAME_LIST: GameDefinition[] = [
@@ -135,6 +153,7 @@ export const GAME_LIST: GameDefinition[] = [
   GAMES.chain,
   GAMES.rush,
   GAMES.ascent,
+  GAMES.salvo,
 ];
 
 export function getGame(id: GameId): GameDefinition {

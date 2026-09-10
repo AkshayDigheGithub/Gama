@@ -1,5 +1,6 @@
 import {
   Brain,
+  Crosshair,
   Footprints,
   MoveUp,
   Target,
@@ -16,6 +17,7 @@ const ICONS = {
   waypoints: Waypoints,
   footprints: Footprints,
   moveUp: MoveUp,
+  crosshair: Crosshair,
 } as const;
 
 export function GameIcon({ icon, ...props }: { icon: GameDefinition["icon"] } & LucideProps) {

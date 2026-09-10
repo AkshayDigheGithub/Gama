@@ -10,6 +10,7 @@ export const BOARD_IDS: readonly BoardId[] = [
   "chain",
   "rush",
   "ascent",
+  "salvo",
 ];
 
 export interface LeaderboardEntry {

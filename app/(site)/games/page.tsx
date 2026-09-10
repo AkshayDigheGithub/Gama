@@ -6,11 +6,11 @@ import { canonical } from "@/lib/site";
 export const metadata: Metadata = {
   title: "All games",
   description:
-    "Six quick browser games you can play right now: Reaction, Crowd Pick, Memory, Chain, Rush and Ascent. No account, no download, under a minute each.",
+    "Seven quick browser games you can play right now: Reaction, Crowd Pick, Memory, Chain, Rush, Ascent and Salvo. No account, no download, under a minute each.",
   alternates: { canonical: canonical("/games") },
   openGraph: {
     title: "All games — ONE MORE",
-    description: "Reaction, Crowd Pick, Memory, Chain, Rush and Ascent. Under a minute each. No account needed.",
+    description: "Reaction, Crowd Pick, Memory, Chain, Rush, Ascent and Salvo. Under a minute each. No account needed.",
     url: canonical("/games"),
   },
 };
@@ -21,8 +21,8 @@ export default function GamesPage() {
       <header className="max-w-2xl">
         <h1 className="text-4xl font-black tracking-tight sm:text-5xl">Games</h1>
         <p className="mt-3 text-base leading-relaxed text-ink-dim">
-          Six ways to lose a minute — some you can pick up in a second, some with a ceiling you will
-          not reach today. Each ends with a score, a personal best and a link you
+          Seven ways to lose a minute — some you can pick up in a second, some with a ceiling you
+          will not reach today. Each ends with a score, a personal best and a link you
           can throw at a friend.
         </p>
       </header>

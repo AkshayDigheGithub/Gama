@@ -22,6 +22,7 @@ const GOAL_RANGE: Record<GameId, [number, number]> = {
   chain: [4200, 7000],
   rush: [3200, 6000],
   ascent: [2400, 4600],
+  salvo: [2800, 5400],
 };
 
 /**
@@ -54,4 +55,5 @@ const BRIEFS: Record<GameId, string> = {
   chain: "Same grid for everyone today. Find the long routes before the combo dies.",
   rush: "Everyone runs the identical course today. Same obstacles, same order — pure execution.",
   ascent: "The same wall for everyone today. Climb it faster than the void climbs after you.",
+  salvo: "Identical targets in an identical order today. Accuracy decides this one, not speed.",
 };

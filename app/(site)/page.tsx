@@ -49,7 +49,7 @@ export default function HomePage() {
         </div>
 
         <p className="mt-5 text-xs text-ink-faint">
-          Six games. Under a minute each. Your scores stay in this browser.
+          Seven games. Under a minute each. Your scores stay in this browser.
         </p>
       </section>
 
@@ -115,7 +115,9 @@ export default function HomePage() {
             from a gentle 2x2 grid to a 4x6 wall while the clock drains. Chain is the deep one: you draw
             routes through a grid where every step must hold or climb by one. Rush and Ascent add a
             character to move — an endless runner whose course is identical for everyone that day,
-            and a one-button wall-jump climb away from a rising void. Every run ends with a score
+            and a one-button wall-jump climb away from a rising void. Salvo is about aim and
+            restraint: pick the right targets out of a crowded board and leave the wrong ones
+            alone. Every run ends with a score
             you can hand to a friend as a link.
           </p>
           <p>

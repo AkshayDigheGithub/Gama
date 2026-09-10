@@ -1,4 +1,11 @@
-export type GameId = "reaction" | "crowd-pick" | "memory" | "chain" | "rush" | "ascent";
+export type GameId =
+  | "reaction"
+  | "crowd-pick"
+  | "memory"
+  | "chain"
+  | "rush"
+  | "ascent"
+  | "salvo";
 
 export const GAME_IDS: readonly GameId[] = [
   "reaction",
@@ -7,6 +14,7 @@ export const GAME_IDS: readonly GameId[] = [
   "chain",
   "rush",
   "ascent",
+  "salvo",
 ];
 
 export function isGameId(value: unknown): value is GameId {

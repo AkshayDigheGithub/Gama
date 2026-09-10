@@ -15,6 +15,7 @@ const BENCHMARKS: Record<GameId, { mean: number; sd: number }> = {
   chain: { mean: 7000, sd: 4000 },
   rush: { mean: 5200, sd: 3400 },
   ascent: { mean: 3600, sd: 2600 },
+  salvo: { mean: 4200, sd: 2800 },
 };
 
 /** Abramowitz & Stegun 7.1.26 — plenty accurate for a progress ring. */
