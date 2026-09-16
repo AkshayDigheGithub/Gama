@@ -6,6 +6,14 @@ import { Button } from "@/components/ui/button";
 import { DailyCard } from "@/components/game/daily-card";
 import { GameCard } from "@/components/game/game-card";
 import { StreakStrip } from "@/components/game/streak-strip";
+import { ArcadeGrid } from "@/components/home/arcade-grid";
+import { FaqAccordion } from "@/components/home/faq-accordion";
+import { GameRoster } from "@/components/home/game-roster";
+import { HeroReaction } from "@/components/home/hero-reaction";
+import { PlayerHud } from "@/components/home/player-hud";
+import { QuickPlay } from "@/components/home/quick-play";
+import { Reveal } from "@/components/home/reveal";
+import { ShortcutLauncher } from "@/components/home/shortcut-launcher";
 import { LeaderboardBoard } from "@/components/leaderboard/leaderboard-board";
 import { GAME_LIST } from "@/lib/games";
 import { SITE, canonical } from "@/lib/site";
@@ -24,6 +32,8 @@ const jsonLd = {
   inLanguage: "en",
 };
 
+/** Softens the pixel grid into the page instead of ending it on a hard edge. */
+const GRID_MASK = "radial-gradient(72% 58% at 50% 34%, black, transparent 76%)";
 
 /**
  * Real questions with honest answers — including the ones about simulated
@@ -70,6 +80,11 @@ const FAQ = [
     answer:
       "Between twenty and sixty seconds. Crowd Pick is a single decision, Reaction is five rounds, and the rest run for about a minute or until you make one mistake too many.",
   },
+  {
+    question: "Can I play with the keyboard?",
+    answer:
+      "Yes. On the home page the number keys 1 to 7 launch a game, R rolls a random one, G, D and L jump to the games list, the daily challenge and the leaderboard, and ? shows the full list. Every game accepts space or enter as its tap.",
+  },
 ] as const;
 
 const faqJsonLd = {
@@ -94,40 +109,66 @@ export default function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
+
       {/* ------------------------------------------------------------ hero -- */}
-      <section className="flex flex-col items-center pt-14 pb-16 text-center sm:pt-20 sm:pb-20">
-        <Badge variant="accent" className="animate-rise">
-          <Zap />
-          No login. No download.
-        </Badge>
-
-        <h1 className="mt-6 text-[clamp(3.25rem,15vw,7rem)] leading-[0.85] font-black tracking-[-0.04em]">
-          ONE
-          <br className="sm:hidden" />
-          <span className="sm:ml-4">MORE</span>
-        </h1>
-
-        <p className="mt-6 max-w-md text-lg leading-snug text-ink-dim sm:text-xl">
-          Quick games. Global competition.
-          <br />
-          <span className="text-ink">{SITE.tagline}</span>
-        </p>
-
-        <div className="mt-9 flex w-full max-w-sm flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center">
-          <Button asChild size="xl" className="text-lg">
-            <Link href="/games/reaction">
-              Play now
-              <ArrowRight />
-            </Link>
-          </Button>
-          <Button asChild size="xl" variant="secondary">
-            <Link href="/games">Browse games</Link>
-          </Button>
+      <section className="relative pt-10 pb-12 sm:pt-14 sm:pb-14">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-20 -left-4 -right-4 bottom-0 overflow-hidden"
+          style={{ maskImage: GRID_MASK, WebkitMaskImage: GRID_MASK }}
+        >
+          <ArcadeGrid className="size-full" />
         </div>
 
-        <p className="mt-5 text-xs text-ink-faint">
-          Seven games. Under a minute each. Your scores stay in this browser.
-        </p>
+        <div className="relative grid items-center gap-10 lg:grid-cols-[1fr_minmax(0,24rem)] lg:gap-8">
+          <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+            <Badge variant="accent" className="animate-rise">
+              <Zap />
+              No login. No download.
+            </Badge>
+
+            <h1 className="mt-6 text-[clamp(3.25rem,15vw,7rem)] leading-[0.85] font-black tracking-[-0.04em] lg:text-[5.75rem]">
+              ONE
+              <br className="sm:hidden" />
+              <span className="sm:ml-4 lg:ml-5">MORE</span>
+            </h1>
+
+            <p className="mt-6 max-w-md text-lg leading-snug text-ink-dim sm:text-xl">
+              Quick games. Global competition.
+              <br />
+              <span className="text-ink">{SITE.tagline}</span>
+            </p>
+
+            <div className="mt-8 flex w-full max-w-sm flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center lg:justify-start">
+              <Button asChild size="xl" className="text-lg">
+                <Link href="/games/reaction">
+                  Play now
+                  <ArrowRight />
+                </Link>
+              </Button>
+              <QuickPlay />
+            </div>
+
+            <div className="mt-5 flex flex-col items-center gap-2.5 lg:items-start">
+              {/* Also binds 1–7, R, G, D, L and ? for the whole page. */}
+              <ShortcutLauncher />
+              <p className="text-xs text-ink-faint">
+                Seven games. Under a minute each.{" "}
+                <Link href="/games" className="underline-offset-2 hover:text-ink-dim hover:underline">
+                  Browse all seven
+                </Link>{" "}
+                — your scores stay in this browser.
+              </p>
+            </div>
+          </div>
+
+          <HeroReaction />
+        </div>
+      </section>
+
+      {/* -------------------------------------------------------- your HUD -- */}
+      <section aria-label="Your stats" className="pb-14">
+        <PlayerHud />
       </section>
 
       {/* ----------------------------------------------------------- games -- */}
@@ -149,19 +190,24 @@ export default function HomePage() {
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {GAME_LIST.map((game, index) => (
-            <GameCard key={game.id} game={game} index={index} />
+            <GameCard
+              key={game.id}
+              game={game}
+              index={index}
+              shortcutKey={String(index + 1)}
+            />
           ))}
         </div>
       </section>
 
       {/* ------------------------------------------------- daily + streak -- */}
-      <section className="grid gap-3 pb-14 lg:grid-cols-2">
+      <Reveal className="grid gap-3 pb-14 lg:grid-cols-2">
         <DailyCard />
         <StreakStrip />
-      </section>
+      </Reveal>
 
       {/* ----------------------------------------------------- leaderboard -- */}
-      <section aria-labelledby="ranks" className="pb-14">
+      <Reveal aria-labelledby="ranks" className="pb-14">
         <div className="mb-5 flex items-end justify-between gap-4">
           <h2 id="ranks" className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-faint">
             <Trophy className="mr-1.5 inline size-3.5 align-[-2px]" />
@@ -175,10 +221,10 @@ export default function HomePage() {
           </Link>
         </div>
         <LeaderboardBoard limit={5} />
-      </section>
+      </Reveal>
 
       {/* ------------------------------------------------------------- seo -- */}
-      <section className="border-t border-line/70 pt-10">
+      <Reveal className="border-t border-line/70 pt-10">
         <h2 className="text-2xl font-bold tracking-tight">Fast browser games, no account needed</h2>
         <div className="mt-4 grid gap-6 text-sm leading-relaxed text-ink-dim md:grid-cols-3">
           <p>
@@ -200,40 +246,23 @@ export default function HomePage() {
             they are labelled as such everywhere they appear.
           </p>
         </div>
-      </section>
+      </Reveal>
 
       {/* --------------------------------------------------- the games, in words -- */}
-      <section aria-labelledby="the-games" className="border-t border-line/70 pt-10">
+      <Reveal aria-labelledby="the-games" className="border-t border-line/70 pt-10">
         <h2 id="the-games" className="text-2xl font-bold tracking-tight">
           The seven games
         </h2>
-        <dl className="mt-5 grid gap-x-8 gap-y-5 md:grid-cols-2">
-          {GAME_LIST.map((game) => (
-            <div key={game.id}>
-              <dt className="text-sm font-bold text-ink">
-                {game.name}{" "}
-                <span className="font-normal text-ink-faint">· {game.durationLabel}</span>
-              </dt>
-              <dd className="mt-1 text-sm leading-relaxed text-ink-dim">{game.description}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
+        <GameRoster />
+      </Reveal>
 
       {/* ------------------------------------------------------------- faq -- */}
-      <section aria-labelledby="faq" className="border-t border-line/70 pb-4 pt-10">
+      <Reveal aria-labelledby="faq" className="border-t border-line/70 pb-4 pt-10">
         <h2 id="faq" className="text-2xl font-bold tracking-tight">
           Common questions
         </h2>
-        <dl className="mt-5 grid gap-x-8 gap-y-5 md:grid-cols-2">
-          {FAQ.map((item) => (
-            <div key={item.question}>
-              <dt className="text-sm font-bold text-ink">{item.question}</dt>
-              <dd className="mt-1 text-sm leading-relaxed text-ink-dim">{item.answer}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
+        <FaqAccordion items={FAQ} />
+      </Reveal>
     </div>
   );
 }
