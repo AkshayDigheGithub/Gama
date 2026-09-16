@@ -167,6 +167,35 @@ clock backwards will not manufacture a streak.
 
 ---
 
+## The home page
+
+The home page is meant to be played, not read. Everything on it is in
+`components/home/`:
+
+| Piece                 | What it does                                                        |
+| --------------------- | ------------------------------------------------------------------- |
+| `hero-reaction.tsx`   | A live one-tap reaction round in the hero. Uses the real game's wait window and benchmark curve, keeps the last five taps in component state, and **writes nothing** — no score, no streak, no stats. The panel says so. |
+| `arcade-grid.tsx`     | A canvas pixel field behind the hero that breathes and lights up around the cursor. Stops when the tab is hidden or the hero scrolls out of view; one static frame under reduced motion. |
+| `player-hud.tsx`      | Runs, top score, streak and games tried, counted up from local storage. |
+| `quick-play.tsx`      | "Surprise me" — spins the roster and drops you into wherever it stops. |
+| `shortcut-launcher.tsx` | Keyboard launcher: `1`–`7` start a game, `R` rolls one, `G`/`D`/`L` navigate, `?` opens the cheat sheet. Ignored while a field has focus or a modifier is held. |
+| `reveal.tsx`          | Scroll reveals, inverted so they cannot hide content (see below).    |
+| `game-roster.tsx`     | The long-form description of all seven games, as links. CSS-only hover. |
+| `faq-accordion.tsx`   | The FAQ as `<details>` — no JavaScript, answers stay in the DOM while closed. |
+
+Game cards lean toward the cursor and carry a spotlight under them. Both run on
+motion values and CSS custom properties rather than React state, so pointer
+movement never re-renders a card, and neither happens for a touch pointer or
+under `prefers-reduced-motion`.
+
+**Reveals never cost content.** A scroll reveal that starts at `opacity: 0`
+puts half the page behind a working IntersectionObserver, including for
+crawlers. `Reveal` inverts it: the section renders visible, and is hidden on
+mount *only* if it starts below the fold, where nobody can see it happen. With
+JavaScript broken or disabled the whole page is still there and fully visible.
+
+---
+
 ## Mobile, motion and performance
 
 - Bottom navigation on phones, header navigation from `sm` up.
@@ -179,6 +208,9 @@ clock backwards will not manufacture a streak.
   game reaches the homepage bundle.
 - Framer Motion ships through `LazyMotion` + `m` components rather than the
   full `motion` bundle.
+- The hero canvas and the card tilt both idle at zero cost: no loop while the
+  tab is hidden or the element is off screen, and no pointer tracking at all
+  for touch input or reduced motion.
 - Every route is statically prerendered except `/challenge`, which reads query
   parameters by definition.
 
@@ -197,7 +229,7 @@ network-first for documents, so a deploy is never masked by a stale cache.
 app/
   (site)/        home, games index, leaderboard, daily, challenge, offline
   (play)/        the three game routes — no header or footer, full-bleed
-components/      ui/ (shadcn-style), game/, leaderboard/, challenge/, layout/, monetization/
+components/      ui/ (shadcn-style), game/, home/, leaderboard/, challenge/, layout/, monetization/
 games/           reaction/, crowd-pick/, memory/ — rules first, React second
 lib/             storage/, analytics/, leaderboard/, challenge/, player/, scoring/, daily/, streak/
 providers/       concrete implementations + React context for each seam
