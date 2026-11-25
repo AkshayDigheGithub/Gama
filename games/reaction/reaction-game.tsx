@@ -9,6 +9,7 @@ import { ResultScreen } from "@/components/game/result-screen";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trackEvent } from "@/lib/analytics";
+import { playSound } from "@/lib/audio";
 import { createRng, type Rng } from "@/lib/rng";
 import { getDailyChallenge } from "@/lib/daily/daily";
 import { toDateKey } from "@/lib/daily/date-key";
@@ -76,6 +77,7 @@ export default function ReactionGame() {
       flipAt.current = performance.now();
       setPhase("ready");
       haptic("tap");
+      playSound("tick");
     }, nextWait(rng.current));
   }, [later, haptic]);
 
@@ -105,6 +107,7 @@ export default function ReactionGame() {
       setLastRound(round);
       setPhase("feedback");
       haptic(round.foul ? "error" : "success");
+      playSound(round.foul ? "miss" : "hit");
 
       later(
         () => {

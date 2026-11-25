@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { trackEvent } from "@/lib/analytics";
+import { playSound } from "@/lib/audio";
 import { getDailyChallenge } from "@/lib/daily/daily";
 import { toDateKey } from "@/lib/daily/date-key";
 import { createRng, type Rng } from "@/lib/rng";
@@ -236,6 +237,7 @@ export default function ChainGame() {
     setBoard(updated);
     setPath([]);
     haptic(path.length >= 5 ? "level" : "success");
+    playSound(path.length >= 5 ? "level" : "hit");
   }, [phase, path, board, combo, haptic, later]);
 
   /* ------------------------------------------------------------- input -- */
@@ -302,7 +304,10 @@ export default function ChainGame() {
   // A light tick per tile added makes the drag feel physical.
   const previousLength = useRef(0);
   useEffect(() => {
-    if (path.length > previousLength.current && path.length > 1) haptic("tap");
+    if (path.length > previousLength.current && path.length > 1) {
+      haptic("tap");
+      playSound("tick");
+    }
     previousLength.current = path.length;
   }, [path.length, haptic]);
 

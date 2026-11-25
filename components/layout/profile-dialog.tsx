@@ -16,7 +16,7 @@ import { generateUsername, USERNAME_MAX, validateUsername } from "@/lib/player/u
 import { usePlayer } from "@/providers/player/player-context";
 import { formatNumber } from "@/lib/utils";
 
-/** Anonymous profile: rename, reroll, toggle haptics. No account anywhere. */
+/** Anonymous profile: rename, reroll, toggle feedback. No account anywhere. */
 export function ProfileDialog() {
   const { username, hydrated, setUsername, settings, updateSettings, stats } = usePlayer();
   const [open, setOpen] = useState(false);
@@ -94,15 +94,28 @@ export function ProfileDialog() {
           </p>
         </div>
 
-        <label className="mt-5 flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-line bg-surface-2/60 px-4 py-3">
-          <span className="text-sm font-semibold">Haptic feedback</span>
-          <input
-            type="checkbox"
-            checked={settings.haptics}
-            onChange={(event) => updateSettings({ haptics: event.target.checked })}
-            className="size-5 accent-[var(--color-accent)]"
-          />
-        </label>
+        <div className="mt-5 flex flex-col gap-2">
+          <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-line bg-surface-2/60 px-4 py-3">
+            <span className="text-sm font-semibold">Haptic feedback</span>
+            <input
+              type="checkbox"
+              checked={settings.haptics}
+              onChange={(event) => updateSettings({ haptics: event.target.checked })}
+              className="size-5 accent-[var(--color-accent)]"
+            />
+          </label>
+
+          {/* Also on the header, where it stays reachable mid-run. */}
+          <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-line bg-surface-2/60 px-4 py-3">
+            <span className="text-sm font-semibold">Sound effects</span>
+            <input
+              type="checkbox"
+              checked={settings.sound}
+              onChange={(event) => updateSettings({ sound: event.target.checked })}
+              className="size-5 accent-[var(--color-accent)]"
+            />
+          </label>
+        </div>
 
         <p className="mt-4 text-[0.6875rem] text-ink-faint">
           {formatNumber(stats.totalGames)} games played on this device.

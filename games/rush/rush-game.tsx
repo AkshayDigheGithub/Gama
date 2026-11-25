@@ -8,6 +8,7 @@ import { ResultScreen } from "@/components/game/result-screen";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trackEvent } from "@/lib/analytics";
+import { playSound } from "@/lib/audio";
 import { getDailyChallenge } from "@/lib/daily/daily";
 import { toDateKey } from "@/lib/daily/date-key";
 import { formatNumber } from "@/lib/utils";
@@ -94,6 +95,7 @@ export default function RushGame() {
       }
       if (state.dead) {
         haptic("error");
+        playSound("miss");
         setPhase("done");
       }
     },
@@ -119,6 +121,7 @@ export default function RushGame() {
     (slide: boolean) => {
       const state = stateRef.current;
       if (!state || state.dead || phase !== "playing") return;
+      playSound("tick");
       if (slide) queueSlide(state);
       else queueJump(state);
     },

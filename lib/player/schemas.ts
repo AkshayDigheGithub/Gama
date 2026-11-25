@@ -16,6 +16,13 @@ import { sanitizeUsername } from "./username";
 
 const SCHEMA_VERSION = 1;
 
+/**
+ * Settings alone is at 2: see `settingsSchema.revive` for what changed. Each
+ * schema carries its own version so one migration cannot invalidate stats and
+ * streaks that are still perfectly readable.
+ */
+const SETTINGS_VERSION = 2;
+
 function record<T>(make: (game: GameId) => T): Record<GameId, T> {
   return GAME_IDS.reduce(
     (acc, game) => {
@@ -149,22 +156,35 @@ export const streakSchema: StorageSchema<StreakState> = {
 
 /* -------------------------------------------------------------- settings -- */
 
+/**
+ * Sound defaults ON, like haptics.
+ *
+ * Nothing can play before a user gesture, so the first tone a visitor hears is
+ * already a reply to their own tap inside a game — never an autoplaying page.
+ * Shipping it off would mean the tactile feedback existed only for the players
+ * who went looking for a setting, which is most of the point of having it; the
+ * header carries a one-tap mute for everyone else.
+ */
 export const DEFAULT_SETTINGS: Settings = Object.freeze({
   haptics: true,
-  sound: false,
+  sound: true,
   reducedMotion: false,
 });
 
 export const settingsSchema: StorageSchema<Settings> = {
   key: STORAGE_KEYS.settings,
-  version: SCHEMA_VERSION,
+  version: SETTINGS_VERSION,
   fallback: DEFAULT_SETTINGS,
-  revive(value) {
+  revive(value, version) {
     const obj = asObject(value);
     if (!obj) return null;
     return {
       haptics: obj.haptics !== false,
-      sound: obj.sound === true,
+      // Before v2 there were no sounds and no control, so a stored `false` was
+      // the old default rather than a decision — a returning player would
+      // otherwise be the only one left silently muted. From v2 it is a real
+      // choice, and is respected in both directions.
+      sound: version >= SETTINGS_VERSION ? obj.sound !== false : DEFAULT_SETTINGS.sound,
       reducedMotion: obj.reducedMotion === true,
     };
   },

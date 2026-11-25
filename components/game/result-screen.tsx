@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { m, useReducedMotion } from "framer-motion";
 import { Flame, RotateCcw, Trophy } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChallengeFriendButton, ShareResultButton } from "@/components/challenge/challenge-actions";
@@ -11,6 +11,7 @@ import { PerformanceMeter } from "./performance-meter";
 import { ScoreCounter } from "./score-counter";
 import { StatTile } from "./stat-tile";
 import type { GameMode } from "@/lib/analytics";
+import { playSound } from "@/lib/audio";
 import type { ParsedChallenge } from "@/lib/challenge/types";
 import { GAMES } from "@/lib/games";
 import type { RunOutcome } from "@/hooks/use-run-recorder";
@@ -85,6 +86,13 @@ export function ResultScreen({
   const beatChallenge = challenge !== null && challenge !== undefined && result.score > challenge.score;
   const best = outcome?.best ?? result.score;
   const game = GAMES[result.game];
+
+  // The run is over the moment this screen mounts — one flourish per result,
+  // not another on every re-render as the outcome and the leaderboard rank
+  // land afterwards.
+  useEffect(() => {
+    playSound("complete");
+  }, []);
 
   const rise = (delay: number) =>
     reduced

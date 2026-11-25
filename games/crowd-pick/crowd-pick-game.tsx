@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { trackEvent } from "@/lib/analytics";
+import { playSound } from "@/lib/audio";
 import { getDailyChallenge } from "@/lib/daily/daily";
 import { toDateKey } from "@/lib/daily/date-key";
 import { clamp, formatNumber } from "@/lib/utils";
@@ -59,6 +60,7 @@ export default function CrowdPickGame() {
     if (locked) return;
     setLocked(true);
     haptic("success");
+    playSound("hit");
 
     // The crowd is drawn at lock-in, so no simulation runs until it is needed
     // and the seed never has to be generated during render. Daily rounds face
@@ -164,7 +166,10 @@ export default function CrowdPickGame() {
               variant="outline"
               size="icon"
               aria-label="Lower"
-              onClick={() => setPick((value) => clamp(value - 1, MIN_PICK, MAX_PICK))}
+              onClick={() => {
+                playSound("tick");
+                setPick((value) => clamp(value - 1, MIN_PICK, MAX_PICK));
+              }}
             >
               <Minus />
             </Button>
@@ -180,7 +185,10 @@ export default function CrowdPickGame() {
               variant="outline"
               size="icon"
               aria-label="Higher"
-              onClick={() => setPick((value) => clamp(value + 1, MIN_PICK, MAX_PICK))}
+              onClick={() => {
+                playSound("tick");
+                setPick((value) => clamp(value + 1, MIN_PICK, MAX_PICK));
+              }}
             >
               <Plus />
             </Button>

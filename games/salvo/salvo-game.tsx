@@ -8,6 +8,7 @@ import { ResultScreen } from "@/components/game/result-screen";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trackEvent } from "@/lib/analytics";
+import { playSound } from "@/lib/audio";
 import { getDailyChallenge } from "@/lib/daily/daily";
 import { toDateKey } from "@/lib/daily/date-key";
 import { formatNumber, formatSeconds } from "@/lib/utils";
@@ -88,7 +89,10 @@ export default function SalvoGame() {
         .map((splash) => ({ ...splash, age: splash.age + fixedMs }))
         .filter((splash) => splash.age < SPLASH_MS);
 
-      if (state.lives < livesBefore) haptic("error");
+      if (state.lives < livesBefore) {
+        haptic("error");
+        playSound("miss");
+      }
 
       publishedAt.current += fixedMs;
       if (publishedAt.current >= 100) {
@@ -130,9 +134,16 @@ export default function SalvoGame() {
     const y = ((event.clientY - box.top) / box.height) * WORLD_H;
 
     const outcomeOfShot = shoot(state, x, y);
-    if (outcomeOfShot === "chip") haptic("tap");
-    else if (outcomeOfShot === "kill") haptic("success");
-    else if (outcomeOfShot === "void") haptic("error");
+    if (outcomeOfShot === "chip") {
+      haptic("tap");
+      playSound("tick");
+    } else if (outcomeOfShot === "kill") {
+      haptic("success");
+      playSound("hit");
+    } else if (outcomeOfShot === "void") {
+      haptic("error");
+      playSound("miss");
+    }
 
     if (outcomeOfShot !== "chip" && outcomeOfShot !== "spent") {
       splashes.current = [

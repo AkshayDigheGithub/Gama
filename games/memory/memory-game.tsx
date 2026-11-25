@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { trackEvent } from "@/lib/analytics";
+import { playSound } from "@/lib/audio";
 import { getDailyChallenge } from "@/lib/daily/daily";
 import { toDateKey } from "@/lib/daily/date-key";
 import { createRng } from "@/lib/rng";
@@ -154,6 +155,7 @@ export default function MemoryGame() {
     previousMistakes.current = state.mistakes;
     deadline.current -= MISTAKE_PENALTY_MS;
     haptic("error");
+    playSound("miss");
     later(() => dispatch({ type: "resolve" }), level.mismatchMs);
   }, [state.mistakes, level.mismatchMs, haptic, later]);
 
@@ -167,6 +169,7 @@ export default function MemoryGame() {
     deadline.current = performance.now() + remaining + level.timeBonusMs;
     setLevelFlash(state.level + 1);
     haptic("level");
+    playSound("level");
 
     later(() => {
       setLevelFlash(null);
@@ -218,6 +221,7 @@ export default function MemoryGame() {
     (id: number) => {
       if (state.locked) return;
       haptic("tap");
+      playSound("tick");
       dispatch({ type: "flip", id });
     },
     [state.locked, haptic],

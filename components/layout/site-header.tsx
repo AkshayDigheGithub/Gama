@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { ProfileDialog } from "./profile-dialog";
+import { SoundToggle } from "./sound-toggle";
 import { StreakChip } from "./streak-chip";
 
 const LINKS = [
@@ -46,6 +47,7 @@ export function SiteHeader() {
 
         <div className="flex shrink-0 items-center gap-2">
           <StreakChip />
+          <SoundToggle />
           <ProfileDialog />
         </div>
       </div>

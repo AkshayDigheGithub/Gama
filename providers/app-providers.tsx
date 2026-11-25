@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { ServiceWorker } from "@/components/layout/service-worker";
 import { AnalyticsContextProvider } from "./analytics/analytics-context";
+import { AudioContextProvider } from "./audio/audio-context";
 import { MotionProvider } from "./motion-provider";
 import { PlayerContextProvider } from "./player/player-context";
 
@@ -24,7 +25,10 @@ export function AppProviders({
     <AnalyticsContextProvider gtmEnabled={gtmEnabled}>
       <PlayerContextProvider>
         <ServiceWorker />
-        <MotionProvider>{children}</MotionProvider>
+        {/* Inside the player provider: it mirrors the mute setting. */}
+        <AudioContextProvider>
+          <MotionProvider>{children}</MotionProvider>
+        </AudioContextProvider>
       </PlayerContextProvider>
     </AnalyticsContextProvider>
   );

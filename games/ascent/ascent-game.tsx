@@ -8,6 +8,7 @@ import { ResultScreen } from "@/components/game/result-screen";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trackEvent } from "@/lib/analytics";
+import { playSound } from "@/lib/audio";
 import { getDailyChallenge } from "@/lib/daily/daily";
 import { toDateKey } from "@/lib/daily/date-key";
 import { formatNumber, formatSeconds } from "@/lib/utils";
@@ -85,7 +86,11 @@ export default function AscentGame() {
       // the world sliding underneath a pinned sprite.
       cameraRef.current += (state.y - cameraRef.current) * Math.min(1, fixedMs / 90);
 
-      if (!clinging && state.clinging && !state.dead) haptic("tap");
+      // Edge-triggered: a fresh hold, not every frame spent holding on.
+      if (!clinging && state.clinging && !state.dead) {
+        haptic("tap");
+        playSound("hit");
+      }
 
       publishedAt.current += fixedMs;
       if (publishedAt.current >= 100) {
@@ -94,6 +99,7 @@ export default function AscentGame() {
       }
       if (state.dead) {
         haptic("error");
+        playSound("miss");
         setPhase("done");
       }
     },
@@ -116,7 +122,10 @@ export default function AscentGame() {
 
   const press = useCallback(() => {
     const state = stateRef.current;
-    if (state && !state.dead && phase === "playing") jump(state);
+    if (state && !state.dead && phase === "playing") {
+      playSound("tick");
+      jump(state);
+    }
   }, [phase]);
 
   const release = useCallback(() => {
