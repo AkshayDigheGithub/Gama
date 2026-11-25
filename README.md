@@ -33,9 +33,10 @@ npm run dev          # http://localhost:3000
 Import the repository and deploy — there is nothing to configure. No database,
 no environment variables, no external services.
 
-The production domain is **https://onemoregame.site**, set in `lib/site.ts`. It
-drives canonical URLs, the sitemap, `robots.txt`, Open Graph tags and the
-absolute URLs inside share links.
+The production domain is **https://www.onemoregame.site**, set in `lib/site.ts`.
+It drives canonical URLs, the sitemap, `robots.txt`, Open Graph tags and the
+absolute URLs inside share links. The apex, `onemoregame.site`, 308-redirects to
+it, so the canonical names www — the destination — rather than the redirect.
 
 Host resolution, in order:
 
@@ -44,7 +45,7 @@ Host resolution, in order:
 | `NEXT_PUBLIC_SITE_URL` set | that value (staging overrides) |
 | Local development | `http://localhost:3000` |
 | Vercel preview deployment | that preview's own URL |
-| Production | `https://onemoregame.site` |
+| Production | `https://www.onemoregame.site` |
 
 Previews and local builds serve `Disallow: /` from `robots.txt`, so a copy of
 the site on a preview host never competes with the real domain in search.

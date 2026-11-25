@@ -18,10 +18,11 @@ export const SITE = {
  * reports the *.vercel.app deployment domain, not the custom domain, so relying
  * on it pointed every canonical, sitemap entry and share link at the wrong host.
  *
- * Apex, not www — Vercel is configured to redirect one to the other, and the
- * canonical must name the destination or every page advertises a redirect.
+ * www, not apex — Vercel serves the site on www.onemoregame.site and 308s the
+ * apex to it, and the canonical must name the destination or every page
+ * advertises a redirect.
  */
-const PRODUCTION_ORIGIN = "https://onemoregame.site";
+const PRODUCTION_ORIGIN = "https://www.onemoregame.site";
 
 function resolveSiteUrl(): string {
   // An explicit override always wins — useful for a staging host.
