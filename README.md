@@ -50,6 +50,23 @@ Host resolution, in order:
 Previews and local builds serve `Disallow: /` from `robots.txt`, so a copy of
 the site on a preview host never competes with the real domain in search.
 
+### Analytics
+
+Two measurement systems run on the production domain, and only there:
+
+| What | Where it goes |
+| ---- | ------------- |
+| Vercel Web Analytics | Pageviews plus the typed events in `lib/analytics/events.ts` |
+| Google Tag Manager | Container `GTM-MP9R2RSH`, set in `lib/gtm.ts` |
+
+Neither loads on a preview deployment or a local build — both are gated on
+`IS_CANONICAL_HOST`, the same switch that keeps previews out of search. Set
+`NEXT_PUBLIC_GTM_ID` to point a build at a different container.
+
+Game events reach Vercel through `providers/analytics/`, which is a seam: the
+app only ever calls `trackEvent`, and swapping or adding a vendor means writing
+one provider class. Nothing in the UI imports a vendor SDK.
+
 ---
 
 ## The games

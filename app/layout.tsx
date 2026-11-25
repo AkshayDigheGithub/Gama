@@ -1,6 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import {
+  GoogleTagManager,
+  GoogleTagManagerNoScript,
+} from "@/components/analytics/google-tag-manager";
 import { AppProviders } from "@/providers/app-providers";
 import { SITE, SITE_URL, canonical } from "@/lib/site";
 import "./globals.css";
@@ -67,8 +71,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
+        <GoogleTagManagerNoScript />
         <AppProviders>{children}</AppProviders>
         <Analytics />
+        <GoogleTagManager />
       </body>
     </html>
   );
