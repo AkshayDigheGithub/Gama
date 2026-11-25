@@ -6,6 +6,7 @@ import {
   GoogleTagManagerNoScript,
 } from "@/components/analytics/google-tag-manager";
 import { AppProviders } from "@/providers/app-providers";
+import { IS_GTM_ENABLED } from "@/lib/gtm";
 import { SITE, SITE_URL, canonical } from "@/lib/site";
 import "./globals.css";
 
@@ -72,7 +73,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <GoogleTagManagerNoScript />
-        <AppProviders>{children}</AppProviders>
+        <AppProviders gtmEnabled={IS_GTM_ENABLED}>{children}</AppProviders>
         <Analytics />
         <GoogleTagManager />
       </body>

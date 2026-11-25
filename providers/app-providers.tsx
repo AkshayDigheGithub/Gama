@@ -12,9 +12,16 @@ import { PlayerContextProvider } from "./player/player-context";
  * v2 adds an auth/session provider and swaps the local implementations behind
  * these same contexts; components keep importing `usePlayer()` and friends.
  */
-export function AppProviders({ children }: { children: ReactNode }) {
+export function AppProviders({
+  children,
+  gtmEnabled = false,
+}: {
+  children: ReactNode;
+  /** Resolved on the server and threaded down; see `createAnalyticsProvider`. */
+  gtmEnabled?: boolean;
+}) {
   return (
-    <AnalyticsContextProvider>
+    <AnalyticsContextProvider gtmEnabled={gtmEnabled}>
       <PlayerContextProvider>
         <ServiceWorker />
         <MotionProvider>{children}</MotionProvider>
