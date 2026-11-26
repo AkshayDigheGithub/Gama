@@ -20,8 +20,7 @@ import {
 import { GameLoading } from "@/components/game/game-loading";
 import { GameShell } from "@/components/game/game-shell";
 import { ResultScreen } from "@/components/game/result-screen";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { StartOverlay } from "@/components/game/start-overlay";
 import { Progress } from "@/components/ui/progress";
 import { trackEvent } from "@/lib/analytics";
 import { playSound } from "@/lib/audio";
@@ -118,7 +117,15 @@ export default function MemoryGame() {
     previousMistakes.current = 0;
   }, []);
 
-  const start = useCallback(() => {
+/**
+   * Builds a fresh board without starting anything.
+   *
+   * Split out of `begin` so the grid can exist before the run does: it is what
+   * a visitor sees on arrival, in place of a screen of rules. The clock is
+   * untouched here, which is the whole point — arming must be safe to do on
+   * mount, and starting must not be.
+   */
+  const arm = useCallback(() => {
     clearTimers();
     seed.current =
       mode === "daily" ? `daily:${toDateKey()}:memory` : `run:${Date.now()}:${Math.random()}`;
@@ -128,15 +135,32 @@ export default function MemoryGame() {
     setResult(null);
     setOutcome(null);
     setTimeLeft(START_TIME_MS);
+    loadLevel(1);
+  }, [clearTimers, loadLevel, mode]);
+
+  // A board on screen from the first paint. Safe on mount: nothing is running.
+  //
+  // This is the one place a board is built outside a player event, so the seed
+  // cannot come from render the way `set-state-in-effect` would prefer — the
+  // free-play seed is random, and this component is `ssr: false` but still
+  // double-invoked in StrictMode, which would hand two different grids to the
+  // same mount. One extra render before a run that then lasts twenty seconds
+  // is not a cost worth trading that for.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    arm();
+  }, [arm]);
+
+  /** Starts the clock. Only ever called from the player's own first input. */
+  const begin = useCallback(() => {
     deadline.current = performance.now() + START_TIME_MS;
     startedAt.current = performance.now();
-    loadLevel(1);
     setPhase("playing");
     trackEvent("game_started", { game: "memory", mode });
     if (mode === "daily") {
       trackEvent("daily_challenge_started", { game: "memory", date: toDateKey() });
     }
-  }, [clearTimers, loadLevel, mode]);
+  }, [mode]);
 
   /* ------------------------------------------------------------- clock -- */
   useEffect(() => {
@@ -211,20 +235,25 @@ export default function MemoryGame() {
     }
   }, [phase, banked, totalMistakes, state.level, record, challenge, clearTimers]);
 
+  // A replay skips the gate: the player has already told us they are in.
   const playAgain = useCallback(() => {
     recorded.current = false;
     trackEvent("game_retry", { game: "memory", mode });
-    start();
-  }, [mode, start]);
+    arm();
+    begin();
+  }, [mode, arm, begin]);
 
   const onFlip = useCallback(
     (id: number) => {
-      if (state.locked) return;
+      // The first tile a visitor touches both starts the run and flips — the
+      // gesture that begins the game is a move in it, not a dismissal.
+      if (phase === "intro") begin();
+      else if (state.locked) return;
       haptic("tap");
       playSound("tick");
       dispatch({ type: "flip", id });
     },
-    [state.locked, haptic],
+    [phase, begin, state.locked, haptic],
   );
 
   if (phase === "done" && !result) {
@@ -266,46 +295,6 @@ export default function MemoryGame() {
             </div>
           }
         />
-      </GameShell>
-    );
-  }
-
-  if (phase === "intro") {
-    return (
-      <GameShell title="Memory" eyebrow="Beat the clock">
-        <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 py-8">
-          <div className="text-center">
-            <span className="grid mx-auto size-14 place-items-center rounded-2xl bg-royal/12 text-royal">
-              <Brain className="size-7" />
-            </span>
-            <h2 className="mt-4 text-3xl font-black tracking-tight">Match. Climb. Survive.</h2>
-            <p className="mt-2 text-sm leading-relaxed text-ink-dim">
-              Clear the grid to bank time and climb a level. Every miss costs two seconds. The run
-              ends when the clock does.
-            </p>
-          </div>
-
-          {challenge ? (
-            <div className="rounded-2xl border border-royal/35 bg-royal/10 px-4 py-3 text-center text-sm">
-              <strong className="clamp-text">{challenge.name}</strong> scored{" "}
-              <strong className="tabular">{formatNumber(challenge.score)}</strong>
-            </div>
-          ) : null}
-
-          {dailyGoal !== undefined ? (
-            <div className="rounded-2xl border border-line bg-surface/60 px-4 py-3 text-center">
-              <Badge variant="cool">Daily target</Badge>
-              <p className="mt-2 text-sm text-ink-dim">
-                Score <strong className="tabular text-ink">{formatNumber(dailyGoal)}</strong> to
-                clear today.
-              </p>
-            </div>
-          ) : null}
-
-          <Button size="xl" block onClick={start} className="text-lg">
-            Start
-          </Button>
-        </div>
       </GameShell>
     );
   }
@@ -414,6 +403,24 @@ export default function MemoryGame() {
               );
             })}
           </div>
+
+          {phase === "intro" ? (
+            <StartOverlay onStart={begin} headline="Match. Climb. Survive." hint="Tap a tile to start">
+              Clear the grid to bank time and climb a level. Every miss costs two seconds. The run
+              ends when the clock does.
+              {challenge ? (
+                <span className="mt-2 block">
+                  <strong className="clamp-text text-ink">{challenge.name}</strong> scored{" "}
+                  <strong className="tabular text-ink">{formatNumber(challenge.score)}</strong>
+                </span>
+              ) : null}
+              {dailyGoal !== undefined ? (
+                <span className="mt-2 block">
+                  Daily target <strong className="tabular text-ink">{formatNumber(dailyGoal)}</strong>
+                </span>
+              ) : null}
+            </StartOverlay>
+          ) : null}
         </div>
       </div>
     </GameShell>

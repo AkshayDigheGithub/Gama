@@ -1,12 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Crosshair } from "lucide-react";
 import { GameLoading } from "@/components/game/game-loading";
 import { GameShell } from "@/components/game/game-shell";
 import { ResultScreen } from "@/components/game/result-screen";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { StartOverlay } from "@/components/game/start-overlay";
 import { trackEvent } from "@/lib/analytics";
 import { playSound } from "@/lib/audio";
 import { getDailyChallenge } from "@/lib/daily/daily";
@@ -61,16 +59,31 @@ export default function SalvoGame() {
     trackEvent("game_view", { game: "salvo" });
   }, []);
 
-  const start = useCallback(() => {
+  /**
+   * Builds the world without starting the run.
+   *
+   * Touches refs only, so it is safe to call on mount: the canvas then has a
+   * real first frame to draw, and a visitor sees the game itself rather than a
+   * screen of rules. Nothing moves until `begin`.
+   */
+  const arm = useCallback(() => {
     stateRef.current = createSalvo(
       mode === "daily" ? `daily:${toDateKey()}` : `run:${Date.now()}:${Math.random()}`,
     );
     splashes.current = [];
+    publishedAt.current = 0;
+  }, [mode]);
+
+  useEffect(() => {
+    arm();
+  }, [arm]);
+
+  /** Starts the simulation. Only ever called from the player's own first input. */
+  const begin = useCallback(() => {
     setHud({ score: 0, lives: STARTING_LIVES, combo: 1 });
     setResult(null);
     setOutcome(null);
     startedAt.current = performance.now();
-    publishedAt.current = 0;
     setPhase("playing");
     trackEvent("game_started", { game: "salvo", mode });
     if (mode === "daily") {
@@ -81,6 +94,8 @@ export default function SalvoGame() {
   const step = useCallback(
     (fixedMs: number) => {
       const state = stateRef.current;
+      // Armed but not started: the world is painted, nothing advances.
+      if (phase !== "playing") return;
       if (!state || state.dead) return;
       const livesBefore = state.lives;
       stepSalvo(state, fixedMs);
@@ -105,7 +120,7 @@ export default function SalvoGame() {
       }
       if (state.dead) setPhase("done");
     },
-    [haptic],
+    [phase, haptic],
   );
 
   const draw = useCallback((ctx: CanvasRenderingContext2D) => {
@@ -117,7 +132,9 @@ export default function SalvoGame() {
     canvasRef,
     worldWidth: WORLD_W,
     worldHeight: WORLD_H,
-    running: phase === "playing",
+    // Runs through the gate too, so the canvas shows the real opening frame
+    // instead of an empty box. `step` holds the world still until then.
+    running: phase === "intro" || phase === "playing",
     step,
     draw,
   });
@@ -126,7 +143,10 @@ export default function SalvoGame() {
     event.preventDefault();
     const state = stateRef.current;
     const canvas = canvasRef.current;
-    if (!state || state.dead || !canvas || phase !== "playing") return;
+    if (!state || state.dead || !canvas) return;
+    // The first tap starts the run and is also the first shot.
+    if (phase === "intro") begin();
+    else if (phase !== "playing") return;
 
     // Screen pixels back into world units — the canvas fills its box exactly.
     const box = canvas.getBoundingClientRect();
@@ -172,11 +192,13 @@ export default function SalvoGame() {
     }
   }, [phase, record, challenge]);
 
+  // A replay skips the gate: the player has already told us they are in.
   const playAgain = useCallback(() => {
     recorded.current = false;
     trackEvent("game_retry", { game: "salvo", mode });
-    start();
-  }, [mode, start]);
+    arm();
+    begin();
+  }, [mode, arm, begin]);
 
   if (phase === "done" && !result) {
     return (
@@ -221,81 +243,6 @@ export default function SalvoGame() {
     );
   }
 
-  if (phase === "intro") {
-    return (
-      <GameShell title="Salvo" eyebrow="Three lives">
-        <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 py-8">
-          <div className="text-center">
-            <span className="grid mx-auto size-14 place-items-center rounded-2xl bg-cool/10 text-cool">
-              <Crosshair className="size-7" />
-            </span>
-            <h2 className="mt-4 text-3xl font-black tracking-tight">Pick your shots.</h2>
-            <p className="mt-2 text-sm leading-relaxed text-ink-dim">
-              Targets surface and burn down. Tap them before their ring empties — and leave the
-              crossed ones alone.
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-line bg-surface/60 p-4">
-            <ul className="flex flex-col gap-2.5 text-sm text-ink-dim">
-              <li className="flex items-center gap-3">
-                <span className="size-4 shrink-0 rounded-full bg-accent" />
-                <span>
-                  <strong className="text-ink">Standard.</strong> Tap once.
-                </span>
-              </li>
-              <li className="flex items-center gap-3">
-                <span className="size-3 shrink-0 rounded-full bg-cool" />
-                <span>
-                  <strong className="text-ink">Rapid.</strong> Smaller, quicker fuse, worth more.
-                </span>
-              </li>
-              <li className="flex items-center gap-3">
-                <span className="size-4 shrink-0 rounded-full border-2 border-royal" />
-                <span>
-                  <strong className="text-ink">Shielded.</strong> Takes two taps.
-                </span>
-              </li>
-              <li className="flex items-center gap-3">
-                <span className="grid size-4 shrink-0 place-items-center rounded-full border-2 border-rose text-[0.5rem] font-black text-rose">
-                  ×
-                </span>
-                <span>
-                  <strong className="text-rose">Void.</strong> Never shoot it. Let it burn out.
-                </span>
-              </li>
-            </ul>
-            <p className="mt-3 border-t border-line pt-3 text-[0.6875rem] leading-relaxed text-ink-faint">
-              A wasted shot resets your streak. Letting a real target expire costs a life — you have
-              three.
-            </p>
-          </div>
-
-          {challenge ? (
-            <div className="rounded-2xl border border-royal/35 bg-royal/10 px-4 py-3 text-center text-sm">
-              <strong className="clamp-text">{challenge.name}</strong> scored{" "}
-              <strong className="tabular">{formatNumber(challenge.score)}</strong>
-            </div>
-          ) : null}
-
-          {dailyGoal !== undefined ? (
-            <div className="rounded-2xl border border-line bg-surface/60 px-4 py-3 text-center">
-              <Badge variant="cool">Daily target</Badge>
-              <p className="mt-2 text-sm text-ink-dim">
-                Score <strong className="tabular text-ink">{formatNumber(dailyGoal)}</strong> to
-                clear today. Everyone gets the same targets.
-              </p>
-            </div>
-          ) : null}
-
-          <Button size="xl" block onClick={start} className="text-lg">
-            Start
-          </Button>
-        </div>
-      </GameShell>
-    );
-  }
-
   return (
     <GameShell
       title="Salvo"
@@ -335,6 +282,24 @@ export default function SalvoGame() {
         >
           <div className="relative aspect-[3/4] h-full max-w-full overflow-hidden rounded-[var(--radius-card)] border border-line">
             <canvas ref={canvasRef} className="block h-full w-full" />
+
+            {phase === "intro" ? (
+              <StartOverlay onStart={begin} headline="Pick your shots." hint="Tap to start">
+                Targets surface and burn down. Tap them before their ring empties — and leave the
+                crossed ones alone.
+                {challenge ? (
+                  <span className="mt-2 block">
+                    <strong className="clamp-text text-ink">{challenge.name}</strong> scored{" "}
+                    <strong className="tabular text-ink">{formatNumber(challenge.score)}</strong>
+                  </span>
+                ) : null}
+                {dailyGoal !== undefined ? (
+                  <span className="mt-2 block">
+                    Daily target <strong className="tabular text-ink">{formatNumber(dailyGoal)}</strong>
+                  </span>
+                ) : null}
+              </StartOverlay>
+            ) : null}
           </div>
         </div>
       </div>

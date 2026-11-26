@@ -1,12 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { MoveUp } from "lucide-react";
 import { GameLoading } from "@/components/game/game-loading";
 import { GameShell } from "@/components/game/game-shell";
 import { ResultScreen } from "@/components/game/result-screen";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { StartOverlay } from "@/components/game/start-overlay";
 import { trackEvent } from "@/lib/analytics";
 import { playSound } from "@/lib/audio";
 import { getDailyChallenge } from "@/lib/daily/daily";
@@ -58,16 +56,31 @@ export default function AscentGame() {
     trackEvent("game_view", { game: "ascent" });
   }, []);
 
-  const start = useCallback(() => {
+  /**
+   * Builds the world without starting the run.
+   *
+   * Touches refs only, so it is safe to call on mount: the canvas then has a
+   * real first frame to draw, and a visitor sees the game itself rather than a
+   * screen of rules. Nothing moves until `begin`.
+   */
+  const arm = useCallback(() => {
     stateRef.current = createAscent(
       mode === "daily" ? `daily:${toDateKey()}` : `run:${Date.now()}:${Math.random()}`,
     );
     cameraRef.current = 0;
+    publishedAt.current = 0;
+  }, [mode]);
+
+  useEffect(() => {
+    arm();
+  }, [arm]);
+
+  /** Starts the simulation. Only ever called from the player's own first input. */
+  const begin = useCallback(() => {
     setHud({ score: 0, metres: 0, jumps: 0 });
     setResult(null);
     setOutcome(null);
     startedAt.current = performance.now();
-    publishedAt.current = 0;
     setPhase("playing");
     trackEvent("game_started", { game: "ascent", mode });
     if (mode === "daily") {
@@ -78,6 +91,8 @@ export default function AscentGame() {
   const step = useCallback(
     (fixedMs: number) => {
       const state = stateRef.current;
+      // Armed but not started: the world is painted, nothing advances.
+      if (phase !== "playing") return;
       if (!state || state.dead) return;
       const clinging = state.clinging;
       stepAscent(state, fixedMs);
@@ -103,7 +118,7 @@ export default function AscentGame() {
         setPhase("done");
       }
     },
-    [haptic],
+    [phase, haptic],
   );
 
   const draw = useCallback((ctx: CanvasRenderingContext2D) => {
@@ -115,18 +130,22 @@ export default function AscentGame() {
     canvasRef,
     worldWidth: WORLD_W,
     worldHeight: WORLD_H,
-    running: phase === "playing",
+    // Runs through the gate too, so the canvas shows the real opening frame
+    // instead of an empty box. `step` holds the world still until then.
+    running: phase === "intro" || phase === "playing",
     step,
     draw,
   });
 
   const press = useCallback(() => {
     const state = stateRef.current;
-    if (state && !state.dead && phase === "playing") {
-      playSound("tick");
-      jump(state);
-    }
-  }, [phase]);
+    if (!state || state.dead) return;
+    // The first tap starts the run and is also the first leap.
+    if (phase === "intro") begin();
+    else if (phase !== "playing") return;
+    playSound("tick");
+    jump(state);
+  }, [phase, begin]);
 
   const release = useCallback(() => {
     const state = stateRef.current;
@@ -170,11 +189,13 @@ export default function AscentGame() {
     }
   }, [phase, record, challenge]);
 
+  // A replay skips the gate: the player has already told us they are in.
   const playAgain = useCallback(() => {
     recorded.current = false;
     trackEvent("game_retry", { game: "ascent", mode });
-    start();
-  }, [mode, start]);
+    arm();
+    begin();
+  }, [mode, arm, begin]);
 
   if (phase === "done" && !result) {
     return (
@@ -220,62 +241,6 @@ export default function AscentGame() {
     );
   }
 
-  if (phase === "intro") {
-    return (
-      <GameShell title="Ascent" eyebrow="One button">
-        <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 py-8">
-          <div className="text-center">
-            <span className="grid mx-auto size-14 place-items-center rounded-2xl bg-rose/10 text-rose">
-              <MoveUp className="size-7" />
-            </span>
-            <h2 className="mt-4 text-3xl font-black tracking-tight">Climb or drown.</h2>
-            <p className="mt-2 text-sm leading-relaxed text-ink-dim">
-              Tap to leap to the other wall. Hold for a high arc, release early for a flat one —
-              that choice is the whole game.
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-line bg-surface/60 p-4 text-sm text-ink-dim">
-            <ul className="flex flex-col gap-2">
-              <li>
-                You slide <strong className="text-ink">down</strong> while clinging, so waiting costs
-                height.
-              </li>
-              <li>
-                <strong className="text-rose">Spiked stretches</strong> are fatal to land on — aim
-                above or below them.
-              </li>
-              <li>
-                The <strong className="text-rose">void</strong> below rises, and it accelerates.
-              </li>
-            </ul>
-          </div>
-
-          {challenge ? (
-            <div className="rounded-2xl border border-royal/35 bg-royal/10 px-4 py-3 text-center text-sm">
-              <strong className="clamp-text">{challenge.name}</strong> scored{" "}
-              <strong className="tabular">{formatNumber(challenge.score)}</strong>
-            </div>
-          ) : null}
-
-          {dailyGoal !== undefined ? (
-            <div className="rounded-2xl border border-line bg-surface/60 px-4 py-3 text-center">
-              <Badge variant="cool">Daily target</Badge>
-              <p className="mt-2 text-sm text-ink-dim">
-                Score <strong className="tabular text-ink">{formatNumber(dailyGoal)}</strong> to
-                clear today. Everyone climbs the same wall.
-              </p>
-            </div>
-          ) : null}
-
-          <Button size="xl" block onClick={start} className="text-lg">
-            Start
-          </Button>
-        </div>
-      </GameShell>
-    );
-  }
-
   return (
     <GameShell
       title="Ascent"
@@ -314,6 +279,24 @@ export default function AscentGame() {
         >
           <div className="relative aspect-[9/16] h-full max-w-full overflow-hidden rounded-[var(--radius-card)] border border-line">
             <canvas ref={canvasRef} className="block h-full w-full" />
+
+            {phase === "intro" ? (
+              <StartOverlay onStart={begin} headline="Climb or drown." hint="Tap to leap">
+                Tap to leap to the other wall. Hold for a high arc, release early for a flat one.
+                You slide down while clinging, and the void below is rising.
+                {challenge ? (
+                  <span className="mt-2 block">
+                    <strong className="clamp-text text-ink">{challenge.name}</strong> scored{" "}
+                    <strong className="tabular text-ink">{formatNumber(challenge.score)}</strong>
+                  </span>
+                ) : null}
+                {dailyGoal !== undefined ? (
+                  <span className="mt-2 block">
+                    Daily target <strong className="tabular text-ink">{formatNumber(dailyGoal)}</strong>
+                  </span>
+                ) : null}
+              </StartOverlay>
+            ) : null}
           </div>
         </div>
       </div>

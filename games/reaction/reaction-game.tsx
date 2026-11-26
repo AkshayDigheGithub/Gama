@@ -2,12 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
-import { Hand, Timer, Zap } from "lucide-react";
+import { Hand, Timer } from "lucide-react";
 import { GameLoading } from "@/components/game/game-loading";
 import { GameShell } from "@/components/game/game-shell";
 import { ResultScreen } from "@/components/game/result-screen";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { StartOverlay } from "@/components/game/start-overlay";
 import { trackEvent } from "@/lib/analytics";
 import { playSound } from "@/lib/audio";
 import { createRng, type Rng } from "@/lib/rng";
@@ -121,6 +120,12 @@ export default function ReactionGame() {
   );
 
   const onTap = useCallback(() => {
+    // The gate: the first touch on the play area is the start, so arriving and
+    // playing are the same gesture.
+    if (phase === "intro") {
+      start();
+      return;
+    }
     if (phase === "waiting") {
       clearTimers();
       finishRound({ index: rounds.length, ms: SLOW_MS, foul: true });
@@ -130,7 +135,7 @@ export default function ReactionGame() {
       const ms = Math.max(1, Math.round(performance.now() - flipAt.current));
       finishRound({ index: rounds.length, ms, foul: false });
     }
-  }, [phase, rounds.length, clearTimers, finishRound]);
+  }, [phase, rounds.length, clearTimers, finishRound, start]);
 
   // Record the finished run exactly once.
   const recorded = useRef(false);
@@ -205,7 +210,7 @@ export default function ReactionGame() {
     <GameShell
       title="Reaction"
       eyebrow={mode === "daily" ? "Daily challenge" : challenge ? `Chasing ${challenge.name}` : "5 rounds"}
-      locked={playing}
+      locked={playing || phase === "intro"}
       hud={
         playing ? (
           <span className="rounded-[var(--radius-pill)] border border-line bg-surface/70 px-3 py-1.5 text-xs font-bold tabular text-ink-dim">
@@ -214,18 +219,16 @@ export default function ReactionGame() {
         ) : null
       }
     >
-      {phase === "intro" ? (
-        <IntroPanel
-          onStart={start}
-          challengeName={challenge?.name}
-          challengeScore={challenge?.score}
-          dailyGoal={dailyGoal}
-        />
-      ) : (
-        <div
+      <div
           role="button"
           tabIndex={0}
-          aria-label={phase === "ready" ? "Tap now" : "Wait for the signal"}
+          aria-label={
+            phase === "intro"
+              ? "Start the run"
+              : phase === "ready"
+                ? "Tap now"
+                : "Wait for the signal"
+          }
           onPointerDown={onTap}
           onKeyDown={(event) => {
             if (event.key === " " || event.key === "Enter") {
@@ -309,61 +312,26 @@ export default function ReactionGame() {
               />
             ))}
           </div>
+
+          {phase === "intro" ? (
+            <StartOverlay onStart={start} headline="Five rounds. Pure reflex.">
+              Wait for the screen to flip, then tap as fast as you can. Tap early and the round is
+              gone.
+              {challenge ? (
+                <span className="mt-2 block">
+                  <strong className="clamp-text text-ink">{challenge.name}</strong> scored{" "}
+                  <strong className="tabular text-ink">{formatNumber(challenge.score)}</strong>
+                </span>
+              ) : null}
+              {dailyGoal !== undefined ? (
+                <span className="mt-2 block">
+                  Daily target <strong className="tabular text-ink">{formatNumber(dailyGoal)}</strong>
+                </span>
+              ) : null}
+            </StartOverlay>
+          ) : null}
         </div>
-      )}
     </GameShell>
-  );
-}
-
-function IntroPanel({
-  onStart,
-  challengeName,
-  challengeScore,
-  dailyGoal,
-}: {
-  onStart: () => void;
-  challengeName?: string;
-  challengeScore?: number;
-  dailyGoal?: number;
-}) {
-  return (
-    <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 py-8">
-      <div className="text-center">
-        <span className="grid mx-auto size-14 place-items-center rounded-2xl bg-accent/10 text-accent">
-          <Zap className="size-7" />
-        </span>
-        <h2 className="mt-4 text-3xl font-black tracking-tight">Five rounds. Pure reflex.</h2>
-        <p className="mt-2 text-sm leading-relaxed text-ink-dim">
-          Wait for the screen to flip, then tap as fast as you can. Tap early and the round is gone.
-        </p>
-      </div>
-
-      {challengeName && challengeScore !== undefined ? (
-        <div className="rounded-2xl border border-royal/35 bg-royal/10 px-4 py-3.5 text-center">
-          <div className="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-royal">
-            Challenge
-          </div>
-          <p className="mt-1 text-sm text-ink">
-            <strong className="clamp-text">{challengeName}</strong> scored{" "}
-            <strong className="tabular">{formatNumber(challengeScore)}</strong>
-          </p>
-        </div>
-      ) : null}
-
-      {dailyGoal !== undefined ? (
-        <div className="rounded-2xl border border-line bg-surface/60 px-4 py-3.5 text-center">
-          <Badge variant="cool">Daily target</Badge>
-          <p className="mt-2 text-sm text-ink-dim">
-            Score <strong className="tabular text-ink">{formatNumber(dailyGoal)}</strong> to clear today.
-          </p>
-        </div>
-      ) : null}
-
-      <Button size="xl" block onClick={onStart} className="text-lg">
-        Start
-      </Button>
-      <p className="text-center text-xs text-ink-faint">Tap anywhere, or press space.</p>
-    </div>
   );
 }
 

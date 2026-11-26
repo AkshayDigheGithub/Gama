@@ -2,12 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
-import { Waypoints } from "lucide-react";
 import { GameLoading } from "@/components/game/game-loading";
 import { GameShell } from "@/components/game/game-shell";
 import { ResultScreen } from "@/components/game/result-screen";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { StartOverlay } from "@/components/game/start-overlay";
 import { Progress } from "@/components/ui/progress";
 import { trackEvent } from "@/lib/analytics";
 import { playSound } from "@/lib/audio";
@@ -137,7 +135,13 @@ export default function ChainGame() {
     return clearTimers;
   }, [clearTimers]);
 
-  const start = useCallback(() => {
+/**
+   * Deals a fresh board without starting the clock.
+   *
+   * Split out of `begin` so the grid is on screen before the run exists: it is
+   * what a visitor arriving from search sees, in place of a screen of rules.
+   */
+  const arm = useCallback(() => {
     clearTimers();
     rng.current = createRng(
       mode === "daily" ? `daily:${toDateKey()}:chain` : `run:${Date.now()}:${Math.random()}`,
@@ -156,17 +160,27 @@ export default function ChainGame() {
     setOutcome(null);
     setTimeLeft(START_TIME_MS);
 
-    deadline.current = performance.now() + START_TIME_MS;
-    startedAt.current = performance.now();
     lastChainAt.current = 0;
     chainsRef.current = 0;
+  }, [clearTimers, mode]);
+
+  // A board from the first paint. See the matching note in Memory for why the
+  // seeding stays out of render.
+  useEffect(() => {
+    arm();
+  }, [arm]);
+
+  /** Starts the clock. Only ever called from the player's own first input. */
+  const begin = useCallback(() => {
+    deadline.current = performance.now() + START_TIME_MS;
+    startedAt.current = performance.now();
     setPhase("playing");
 
     trackEvent("game_started", { game: "chain", mode });
     if (mode === "daily") {
       trackEvent("daily_challenge_started", { game: "chain", date: toDateKey() });
     }
-  }, [clearTimers, mode]);
+  }, [mode]);
 
   /* ---------------------------------------------- clock + combo decay -- */
   useEffect(() => {
@@ -250,7 +264,10 @@ export default function ChainGame() {
   };
 
   const onTilePointerDown = (event: React.PointerEvent, index: number) => {
-    if (phase !== "playing") return;
+    // The first tile a visitor touches starts the run and begins the chain, so
+    // the gesture that opens the game is already a move in it.
+    if (phase === "intro") begin();
+    else if (phase !== "playing") return;
     event.preventDefault();
     gridRef.current?.setPointerCapture(event.pointerId);
     dragging.current = true;
@@ -339,11 +356,13 @@ export default function ChainGame() {
     }
   }, [phase, score, stats, record, challenge, clearTimers]);
 
+  // A replay skips the gate: the player has already told us they are in.
   const playAgain = useCallback(() => {
     recorded.current = false;
     trackEvent("game_retry", { game: "chain", mode });
-    start();
-  }, [mode, start]);
+    arm();
+    begin();
+  }, [mode, arm, begin]);
 
   /* ------------------------------------------------------------ render -- */
   if (phase === "done" && !result) {
@@ -387,68 +406,6 @@ export default function ChainGame() {
             </div>
           }
         />
-      </GameShell>
-    );
-  }
-
-  if (phase === "intro") {
-    return (
-      <GameShell title="Chain" eyebrow="60 seconds">
-        <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 py-8">
-          <div className="text-center">
-            <span className="grid mx-auto size-14 place-items-center rounded-2xl bg-amber/10 text-amber">
-              <Waypoints className="size-7" />
-            </span>
-            <h2 className="mt-4 text-3xl font-black tracking-tight">Draw the longest route.</h2>
-            <p className="mt-2 text-sm leading-relaxed text-ink-dim">
-              Drag through touching tiles. Each step must land on the{" "}
-              <strong className="text-ink">same number</strong> or{" "}
-              <strong className="text-ink">exactly one higher</strong>.
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-line bg-surface/60 p-4">
-            <div className="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-ink-faint">
-              A legal chain
-            </div>
-            <div className="mt-3 flex items-center justify-center gap-2">
-              {[2, 2, 3, 4].map((value, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  {index > 0 ? <span className="text-ink-faint">→</span> : null}
-                  <span
-                    className={`grid size-11 place-items-center rounded-xl border text-lg font-bold tabular ${TILE_IDLE[value]}`}
-                  >
-                    {value}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <p className="mt-3 text-center text-[0.6875rem] text-ink-faint">
-              Diagonals count. Three tiles minimum. Longer routes pay far more.
-            </p>
-          </div>
-
-          {challenge ? (
-            <div className="rounded-2xl border border-royal/35 bg-royal/10 px-4 py-3 text-center text-sm">
-              <strong className="clamp-text">{challenge.name}</strong> scored{" "}
-              <strong className="tabular">{formatNumber(challenge.score)}</strong>
-            </div>
-          ) : null}
-
-          {dailyGoal !== undefined ? (
-            <div className="rounded-2xl border border-line bg-surface/60 px-4 py-3 text-center">
-              <Badge variant="cool">Daily target</Badge>
-              <p className="mt-2 text-sm text-ink-dim">
-                Score <strong className="tabular text-ink">{formatNumber(dailyGoal)}</strong> to
-                clear today.
-              </p>
-            </div>
-          ) : null}
-
-          <Button size="xl" block onClick={start} className="text-lg">
-            Start
-          </Button>
-        </div>
       </GameShell>
     );
   }
@@ -604,6 +561,28 @@ export default function ChainGame() {
               </m.span>
             ) : null}
           </AnimatePresence>
+
+          {phase === "intro" ? (
+            <StartOverlay
+              onStart={begin}
+              headline="Draw the longest route."
+              hint="Drag tiles to start"
+            >
+              Drag through touching tiles. Each step must land on the same number or exactly one
+              higher. Diagonals count, {MIN_CHAIN} tiles minimum.
+              {challenge ? (
+                <span className="mt-2 block">
+                  <strong className="clamp-text text-ink">{challenge.name}</strong> scored{" "}
+                  <strong className="tabular text-ink">{formatNumber(challenge.score)}</strong>
+                </span>
+              ) : null}
+              {dailyGoal !== undefined ? (
+                <span className="mt-2 block">
+                  Daily target <strong className="tabular text-ink">{formatNumber(dailyGoal)}</strong>
+                </span>
+              ) : null}
+            </StartOverlay>
+          ) : null}
         </div>
 
         <p className="text-center text-[0.6875rem] text-ink-faint">

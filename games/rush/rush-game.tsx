@@ -1,12 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Footprints } from "lucide-react";
 import { GameLoading } from "@/components/game/game-loading";
 import { GameShell } from "@/components/game/game-shell";
 import { ResultScreen } from "@/components/game/result-screen";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { StartOverlay } from "@/components/game/start-overlay";
 import { trackEvent } from "@/lib/analytics";
 import { playSound } from "@/lib/audio";
 import { getDailyChallenge } from "@/lib/daily/daily";
@@ -62,23 +60,42 @@ export default function RushGame() {
     trackEvent("game_view", { game: "rush" });
   }, []);
 
-  const start = useCallback(() => {
+  /**
+   * Builds the world without starting the run.
+   *
+   * Touches refs only, so it is safe to call on mount: the canvas then has a
+   * real first frame to draw, and a visitor sees the game itself rather than a
+   * screen of rules. Nothing moves until `begin`.
+   */
+  const arm = useCallback(() => {
     stateRef.current = createRush(
       mode === "daily" ? `daily:${toDateKey()}` : `run:${Date.now()}:${Math.random()}`,
     );
+    publishedAt.current = 0;
+  }, [mode]);
+
+  useEffect(() => {
+    arm();
+  }, [arm]);
+
+  /** Starts the simulation. Only ever called from the player's own first input. */
+  const begin = useCallback(() => {
     setHud({ score: 0, metres: 0, multiplier: 1 });
     setResult(null);
     setOutcome(null);
     startedAt.current = performance.now();
-    publishedAt.current = 0;
     setPhase("playing");
     trackEvent("game_started", { game: "rush", mode });
-    if (mode === "daily") trackEvent("daily_challenge_started", { game: "rush", date: toDateKey() });
+    if (mode === "daily") {
+      trackEvent("daily_challenge_started", { game: "rush", date: toDateKey() });
+    }
   }, [mode]);
 
   const step = useCallback(
     (fixedMs: number) => {
       const state = stateRef.current;
+      // Armed but not started: the world is painted, nothing advances.
+      if (phase !== "playing") return;
       if (!state || state.dead) return;
       stepRush(state, fixedMs);
 
@@ -99,7 +116,7 @@ export default function RushGame() {
         setPhase("done");
       }
     },
-    [haptic],
+    [phase, haptic],
   );
 
   const draw = useCallback((ctx: CanvasRenderingContext2D) => {
@@ -111,7 +128,9 @@ export default function RushGame() {
     canvasRef,
     worldWidth: WORLD_W,
     worldHeight: WORLD_H,
-    running: phase === "playing",
+    // Runs through the gate too, so the canvas shows the real opening frame
+    // instead of an empty box. `step` holds the world still until then.
+    running: phase === "intro" || phase === "playing",
     step,
     draw,
   });
@@ -120,12 +139,16 @@ export default function RushGame() {
   const press = useCallback(
     (slide: boolean) => {
       const state = stateRef.current;
-      if (!state || state.dead || phase !== "playing") return;
+      if (!state || state.dead) return;
+      // The first tap starts the run and is also the first jump — the gesture
+      // that opens the game is a move in it, not a dismissal.
+      if (phase === "intro") begin();
+      else if (phase !== "playing") return;
       playSound("tick");
       if (slide) queueSlide(state);
       else queueJump(state);
     },
-    [phase],
+    [phase, begin],
   );
 
   const release = useCallback(() => {
@@ -182,11 +205,13 @@ export default function RushGame() {
     }
   }, [phase, record, challenge]);
 
+  // A replay skips the gate: the player has already told us they are in.
   const playAgain = useCallback(() => {
     recorded.current = false;
     trackEvent("game_retry", { game: "rush", mode });
-    start();
-  }, [mode, start]);
+    arm();
+    begin();
+  }, [mode, arm, begin]);
 
   if (phase === "done" && !result) {
     return (
@@ -231,60 +256,6 @@ export default function RushGame() {
     );
   }
 
-  if (phase === "intro") {
-    return (
-      <GameShell title="Rush" eyebrow="Run until you fall">
-        <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 py-8">
-          <div className="text-center">
-            <span className="grid mx-auto size-14 place-items-center rounded-2xl bg-accent/10 text-accent">
-              <Footprints className="size-7" />
-            </span>
-            <h2 className="mt-4 text-3xl font-black tracking-tight">Don&apos;t stop.</h2>
-            <p className="mt-2 text-sm leading-relaxed text-ink-dim">
-              Tap to jump — hold for height. Tap low on the screen to slide. One hit ends the run.
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-line bg-surface/60 p-4 text-sm text-ink-dim">
-            <ul className="flex flex-col gap-2">
-              <li>
-                <strong className="text-rose">Spikes and blocks</strong> — jump.
-              </li>
-              <li>
-                <strong className="text-amber">Low bars</strong> — hold a slide until you are through.
-              </li>
-              <li>
-                <strong className="text-accent">Orbs and near misses</strong> build your multiplier.
-                Playing safe lets it decay.
-              </li>
-            </ul>
-          </div>
-
-          {challenge ? (
-            <div className="rounded-2xl border border-royal/35 bg-royal/10 px-4 py-3 text-center text-sm">
-              <strong className="clamp-text">{challenge.name}</strong> scored{" "}
-              <strong className="tabular">{formatNumber(challenge.score)}</strong>
-            </div>
-          ) : null}
-
-          {dailyGoal !== undefined ? (
-            <div className="rounded-2xl border border-line bg-surface/60 px-4 py-3 text-center">
-              <Badge variant="cool">Daily target</Badge>
-              <p className="mt-2 text-sm text-ink-dim">
-                Score <strong className="tabular text-ink">{formatNumber(dailyGoal)}</strong> to
-                clear today. Everyone runs the same course.
-              </p>
-            </div>
-          ) : null}
-
-          <Button size="xl" block onClick={start} className="text-lg">
-            Start
-          </Button>
-        </div>
-      </GameShell>
-    );
-  }
-
   return (
     <GameShell
       title="Rush"
@@ -323,6 +294,24 @@ export default function RushGame() {
         >
           <div className="relative aspect-[16/9] max-h-full w-full overflow-hidden rounded-[var(--radius-card)] border border-line">
             <canvas ref={canvasRef} className="block h-full w-full" />
+
+            {phase === "intro" ? (
+              <StartOverlay onStart={begin} headline="Don&apos;t stop." hint="Tap to run">
+                Tap to jump — hold for height. Tap low on the screen to slide. One hit ends the
+                run.
+                {challenge ? (
+                  <span className="mt-2 block">
+                    <strong className="clamp-text text-ink">{challenge.name}</strong> scored{" "}
+                    <strong className="tabular text-ink">{formatNumber(challenge.score)}</strong>
+                  </span>
+                ) : null}
+                {dailyGoal !== undefined ? (
+                  <span className="mt-2 block">
+                    Daily target <strong className="tabular text-ink">{formatNumber(dailyGoal)}</strong>
+                  </span>
+                ) : null}
+              </StartOverlay>
+            ) : null}
           </div>
           {/* The whole panel is tappable, so the empty space around the game
               becomes the control surface — labelled rather than hidden. */}
